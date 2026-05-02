@@ -1,0 +1,32 @@
+name: Render Video
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Render Video
+        run: npm run build-video
+
+      - name: Upload Video
+        uses: actions/upload-artifact@v4
+        with:
+          name: comparison-video
+          path: out/video.mp4

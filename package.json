@@ -7,13 +7,16 @@
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist",
+    "build-video": "remotion render src/remotion/index.ts ComparisonVideo out/video.mp4",
+    "clean": "rm -rf dist out",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
+    "@remotion/cli": "^4.0.456",
     "@remotion/google-fonts": "^4.0.456",
     "@remotion/player": "^4.0.456",
+    "@remotion/renderer": "^4.0.456",
     "@remotion/shapes": "^4.0.456",
     "@remotion/transitions": "^4.0.456",
     "@tailwindcss/vite": "^4.1.14",

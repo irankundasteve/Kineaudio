@@ -1,4 +1,5 @@
 import { Composition } from 'remotion';
+import React from 'react';
 import { MainVideo } from './Video';
 import { FPS, WIDTH, HEIGHT, DURATION_IN_FRAMES } from './constants';
 
