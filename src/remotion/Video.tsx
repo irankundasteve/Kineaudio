@@ -10,6 +10,7 @@ import {
   Series
 } from 'remotion';
 import React from 'react';
+import '../index.css';
 import { 
   MapPin, 
   Flag, 
@@ -54,7 +55,8 @@ const SlideInText: React.FC<{
   className?: string;
   delay?: number;
   duration?: number;
-}> = ({ text, fontFamily, size = 48, className = "", delay = 0, duration = 12 }) => {
+  style?: React.CSSProperties;
+}> = ({ text, fontFamily, size = 48, className = "", delay = 0, duration = 12, style = {} }) => {
   const frame = useCurrentFrame();
   
   const opacity = interpolate(
@@ -79,7 +81,8 @@ const SlideInText: React.FC<{
         fontSize: size, 
         opacity,
         transform: `translateY(${translateY}px)`,
-        textAlign: 'center'
+        textAlign: 'center',
+        ...style
       }}
     >
       {text}
@@ -95,20 +98,21 @@ export const MainVideo: React.FC = () => {
       <Series>
         {/* [00:00.000] Canada vs USA — Same Continent, Different Worlds */}
         <Series.Sequence durationInFrames={30}>
-          <AbsoluteFill className="flex items-center justify-center">
-            <div className="absolute inset-0 flex">
-              <div className="w-1/2 h-full bg-[#FF0000] opacity-80" />
-              <div className="w-1/2 h-full bg-[#002868] opacity-80" />
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex' }}>
+              <div style={{ width: '50%', height: '100%', backgroundColor: '#FF0000', opacity: 0.8 }} />
+              <div style={{ width: '50%', height: '100%', backgroundColor: '#002868', opacity: 0.8 }} />
             </div>
             
-            <div className="relative z-10">
+            <div style={{ position: 'relative', zIndex: 10 }}>
               <SlideInText 
                 text="CANADA vs USA" 
                 fontFamily={montserratBold}
                 size={92}
-                className="text-white drop-shadow-2xl"
+                className="drop-shadow-2xl"
+                style={{ color: 'white' }}
               />
-              <div className="text-white/80 text-center mt-4 text-2xl" style={{ fontFamily: montserratMedium }}>
+              <div style={{ color: 'rgba(255, 255, 255, 0.8)', textAlign: 'center', marginTop: '16px', fontSize: '24px', fontFamily: montserratMedium }}>
                 Same Continent, Different Worlds
               </div>
             </div>
@@ -122,14 +126,14 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:01.000] Two nations. */}
         <Series.Sequence durationInFrames={15}>
-          <AbsoluteFill className="flex items-center justify-center">
-            <div className="absolute inset-0 flex">
-              <div className="w-1/2 h-full border-r border-white/20" />
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex' }}>
+              <div style={{ width: '50%', height: '100%', borderRight: '1px solid rgba(255, 255, 255, 0.2)' }} />
             </div>
             <SlideInText 
               text="Two nations." 
               fontFamily={montserratSemiBold}
-              className="text-white absolute bottom-20"
+              style={{ color: 'white', position: 'absolute', bottom: '80px' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-fast-small-sweep-transition-166.wav" 
@@ -140,12 +144,12 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:01.500] One border. */}
         <Series.Sequence durationInFrames={15}>
-          <AbsoluteFill className="flex items-center justify-center">
-            <div className="w-1 h-full bg-white/40 absolute left-1/2" />
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '4px', height: '100%', backgroundColor: 'rgba(255, 255, 255, 0.4)', position: 'absolute', left: '50%' }} />
             <SlideInText 
               text="One border." 
               fontFamily={montserratSemiBold}
-              className="text-white"
+              style={{ color: 'white' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-arrow-whoosh-1491.wav" 
@@ -156,13 +160,13 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:02.000] Zero confusion… once you look closer. */}
         <Series.Sequence durationInFrames={30}>
-          <AbsoluteFill className="flex items-center justify-center bg-zinc-900">
-             <Network className="text-white/5 absolute w-full h-full p-40" />
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#18181b' }}>
+             <Network style={{ color: 'rgba(255, 255, 255, 0.05)', position: 'absolute', width: '100%', height: '100%', padding: '160px' }} />
             <SlideInText 
               text="look closer →" 
               fontFamily={montserratItalic}
               size={48}
-              className="text-amber-500 absolute bottom-20 right-20"
+              style={{ color: '#f59e0b', position: 'absolute', bottom: '80px', right: '80px' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-cinematic-transition-swoosh-heartbeat-trailer-488.wav" 
@@ -173,12 +177,12 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:03.000] different systems */}
         <Series.Sequence durationInFrames={75}>
-          <AbsoluteFill className="flex items-center justify-center">
-            <Globe className="text-white/20 w-[400px] h-[400px]" />
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Globe style={{ color: 'rgba(255, 255, 255, 0.2)', width: '400px', height: '400px' }} />
             <SlideInText 
               text="different systems" 
               fontFamily={montserratBold}
-              className="text-white absolute bottom-20"
+              style={{ color: 'white', position: 'absolute', bottom: '80px' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-technological-futuristic-hum-2133.wav" 
@@ -189,12 +193,12 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:05.500] IDENTITY */}
         <Series.Sequence durationInFrames={24}>
-          <AbsoluteFill className="flex items-center justify-center">
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <SlideInText 
               text="IDENTITY" 
               fontFamily={montserratBlack}
               size={84}
-              className="text-white"
+              style={{ color: 'white' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-melodical-flute-music-notification-2310.wav" 
@@ -205,18 +209,18 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:06.300] multiculturalism • policy • deliberate */}
         <Series.Sequence durationInFrames={54}>
-          <AbsoluteFill className="p-20 flex flex-col justify-center gap-10">
-            <div className="flex items-center gap-6 text-red-500">
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '40px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', color: '#ef4444' }}>
               <Users size={64} />
-              <span className="text-white text-4xl" style={{ fontFamily: montserratMedium }}>multiculturalism</span>
+              <span style={{ color: 'white', fontSize: '36px', fontFamily: montserratMedium }}>multiculturalism</span>
             </div>
-            <div className="flex items-center gap-6 text-red-500">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', color: '#ef4444' }}>
               <ShieldCheck size={64} />
-              <span className="text-white text-4xl" style={{ fontFamily: montserratMedium }}>policy</span>
+              <span style={{ color: 'white', fontSize: '36px', fontFamily: montserratMedium }}>policy</span>
             </div>
-            <div className="flex items-center gap-6 text-red-500">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', color: '#ef4444' }}>
               <Target size={64} />
-              <span className="text-white text-4xl" style={{ fontFamily: montserratMedium }}>deliberate</span>
+              <span style={{ color: 'white', fontSize: '36px', fontFamily: montserratMedium }}>deliberate</span>
             </div>
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-keyboard-typing-1386.wav" 
@@ -227,11 +231,11 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:08.100] freedom first */}
         <Series.Sequence durationInFrames={51}>
-          <AbsoluteFill className="flex items-center justify-center bg-blue-900/20">
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30, 58, 138, 0.2)' }}>
             <SlideInText 
               text="freedom first" 
               fontFamily={montserratBold}
-              className="text-white uppercase italic"
+              style={{ color: 'white', textTransform: 'uppercase', fontStyle: 'italic' }}
               size={72}
             />
             <Audio 
@@ -243,12 +247,12 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:09.800] GOVERNANCE */}
         <Series.Sequence durationInFrames={30}>
-          <AbsoluteFill className="flex items-center justify-center bg-zinc-900">
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#18181b' }}>
             <SlideInText 
               text="GOVERNANCE" 
               fontFamily={montserratBlack}
               size={84}
-              className="text-white"
+              style={{ color: 'white' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-trumpet-fanfare-2293.wav" 
@@ -259,9 +263,9 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:10.800] constitutional monarchy • parliamentary */}
         <Series.Sequence durationInFrames={60}>
-          <AbsoluteFill className="p-20 flex flex-col justify-center">
-            <History className="text-red-500 mb-10" size={80} />
-            <div className="text-white text-3xl" style={{ fontFamily: montserratMedium }}>
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <History style={{ color: '#ef4444', marginBottom: '40px' }} size={80} />
+            <div style={{ color: 'white', fontSize: '30px', fontFamily: montserratMedium }}>
               constitutional monarchy • parliamentary
             </div>
             <Audio 
@@ -273,11 +277,11 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:12.800] republic • no monarchy */}
         <Series.Sequence durationInFrames={42}>
-          <AbsoluteFill className="p-20 flex flex-col justify-center items-end text-right">
-             <div className="text-white text-5xl font-black mb-6 flex gap-4" style={{ fontFamily: montserratBold }}>
-                <span className="text-red-600 line-through">MONARCHY</span> NO
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-end', textAlign: 'right' }}>
+             <div style={{ color: 'white', fontSize: '48px', fontWeight: 900, marginBottom: '24px', display: 'flex', gap: '16px', fontFamily: montserratBold }}>
+                <span style={{ color: '#dc2626', textDecoration: 'line-through' }}>MONARCHY</span> NO
              </div>
-             <div className="text-white text-4xl" style={{ fontFamily: montserratBold }}>
+             <div style={{ color: 'white', fontSize: '36px', fontFamily: montserratBold }}>
                 REPUBLIC
              </div>
             <Audio 
@@ -289,18 +293,18 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:14.200] executive • legislative • judicial */}
         <Series.Sequence durationInFrames={45}>
-          <AbsoluteFill className="flex items-center justify-center gap-10">
-            <div className="flex flex-col items-center gap-4 text-blue-400">
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '40px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', color: '#60a5fa' }}>
               <Building2 size={64} />
-              <span className="text-white text-lg" style={{ fontFamily: montserratSemiBold }}>Executive</span>
+              <span style={{ color: 'white', fontSize: '18px', fontFamily: montserratSemiBold }}>Executive</span>
             </div>
-            <div className="flex flex-col items-center gap-4 text-red-400">
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', color: '#f87171' }}>
               <Users size={64} />
-              <span className="text-white text-lg" style={{ fontFamily: montserratSemiBold }}>Legislative</span>
+              <span style={{ color: 'white', fontSize: '18px', fontFamily: montserratSemiBold }}>Legislative</span>
             </div>
-            <div className="flex flex-col items-center gap-4 text-amber-400">
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', color: '#fbbf24' }}>
               <Scale size={64} />
-              <span className="text-white text-lg" style={{ fontFamily: montserratSemiBold }}>Judicial</span>
+              <span style={{ color: 'white', fontSize: '18px', fontFamily: montserratSemiBold }}>Judicial</span>
             </div>
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-clock-countdown-bleeps-916.wav" 
@@ -311,13 +315,13 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:15.700] HEALTHCARE */}
         <Series.Sequence durationInFrames={15}>
-          <AbsoluteFill className="flex items-center justify-center">
-            <div className="w-1 bg-red-600 h-full absolute" />
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '4px', backgroundColor: '#dc2626', height: '100%', position: 'absolute' }} />
             <SlideInText 
               text="HEALTHCARE" 
               fontFamily={montserratBlack}
               size={84}
-              className="text-white bg-black px-10"
+              style={{ color: 'white', backgroundColor: 'black', paddingLeft: '40px', paddingRight: '40px' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-cinematic-whoosh-fast-transition-1492.wav" 
@@ -328,9 +332,9 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:16.200] publicly funded • no door payment */}
         <Series.Sequence durationInFrames={30}>
-          <AbsoluteFill className="p-20 flex flex-col justify-center bg-blue-900/10">
-            <Stethoscope className="text-blue-500 mb-10" size={80} />
-            <div className="text-white text-3xl" style={{ fontFamily: montserratMedium }}>
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundColor: 'rgba(30, 58, 138, 0.1)' }}>
+            <Stethoscope style={{ color: '#3b82f6', marginBottom: '40px' }} size={80} />
+            <div style={{ color: 'white', fontSize: '30px', fontFamily: montserratMedium }}>
               publicly funded • no door payment
             </div>
             <Audio 
@@ -342,12 +346,12 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:17.200] $0 at door */}
         <Series.Sequence durationInFrames={30}>
-          <AbsoluteFill className="flex items-center justify-center">
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <SlideInText 
               text="$0 AT DOOR" 
               fontFamily={montserratBold}
               size={84}
-              className="text-green-500"
+              style={{ color: '#22c55e' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-cartoon-toy-whistle-616.wav" 
@@ -358,9 +362,9 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:18.200] private • insurance-driven */}
         <Series.Sequence durationInFrames={36}>
-          <AbsoluteFill className="p-20 flex flex-col items-end justify-center text-right bg-red-900/10">
-            <CreditCard className="text-red-500 mb-10" size={80} />
-            <div className="text-white text-3xl" style={{ fontFamily: montserratMedium }}>
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', textAlign: 'right', backgroundColor: 'rgba(127, 29, 29, 0.1)' }}>
+            <CreditCard style={{ color: '#ef4444', marginBottom: '40px' }} size={80} />
+            <div style={{ color: 'white', fontSize: '30px', fontFamily: montserratMedium }}>
               private • insurance-driven
             </div>
             <Audio 
@@ -372,10 +376,10 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:19.400] access • speed • cost */}
         <Series.Sequence durationInFrames={45}>
-          <AbsoluteFill className="flex items-center justify-center gap-10">
-            <span className="text-white text-3xl" style={{ fontFamily: montserratSemiBold }}>ACCESS</span>
-            <span className="text-white text-3xl" style={{ fontFamily: montserratSemiBold }}>SPEED</span>
-            <span className="text-white text-3xl" style={{ fontFamily: montserratSemiBold }}>COST</span>
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '40px' }}>
+            <span style={{ color: 'white', fontSize: '30px', fontFamily: montserratSemiBold }}>ACCESS</span>
+            <span style={{ color: 'white', fontSize: '30px', fontFamily: montserratSemiBold }}>SPEED</span>
+            <span style={{ color: 'white', fontSize: '30px', fontFamily: montserratSemiBold }}>COST</span>
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-game-show-suspense-waiting-667.wav" 
               volume={0.3}
@@ -385,12 +389,12 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:20.900] CULTURE */}
         <Series.Sequence durationInFrames={12}>
-          <AbsoluteFill className="flex items-center justify-center bg-slate-900">
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f172a' }}>
             <SlideInText 
               text="CULTURE" 
               fontFamily={montserratBlack}
               size={84}
-              className="text-white"
+              style={{ color: 'white' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-air-woosh-1489.wav" 
@@ -401,9 +405,9 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:21.300] restraint • politeness • consensus */}
         <Series.Sequence durationInFrames={60}>
-          <AbsoluteFill className="p-20 flex items-center gap-10">
-            <Trees className="text-emerald-500" size={120} />
-             <div className="text-white text-3xl" style={{ fontFamily: montserratLight }}>
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', alignItems: 'center', gap: '40px' }}>
+            <Trees style={{ color: '#10b981' }} size={120} />
+             <div style={{ color: 'white', fontSize: '30px', fontFamily: montserratLight }}>
               restraint • politeness • consensus
             </div>
             <Audio 
@@ -415,11 +419,11 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:23.300] confidence • directness • competition */}
         <Series.Sequence durationInFrames={60}>
-          <AbsoluteFill className="p-20 flex items-center justify-end text-right gap-10">
-            <div className="text-white text-3xl uppercase font-black" style={{ fontFamily: montserratBold }}>
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right', gap: '40px' }}>
+            <div style={{ color: 'white', fontSize: '30px', textTransform: 'uppercase', fontWeight: 900, fontFamily: montserratBold }}>
               confidence • directness • competition
             </div>
-            <Trophy className="text-amber-500" size={120} />
+            <Trophy style={{ color: '#f59e0b' }} size={120} />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-martial-arts-fast-punch-2047.wav" 
               volume={0.6}
@@ -429,13 +433,13 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:25.300] MEASUREMENT */}
         <Series.Sequence durationInFrames={18}>
-          <AbsoluteFill className="flex items-center justify-center p-20 bg-zinc-900">
-             <Ruler className="text-white/10 absolute scale-[3]" />
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px', backgroundColor: '#18181b' }}>
+             <Ruler style={{ color: 'rgba(255, 255, 255, 0.1)', position: 'absolute', transform: 'scale(3)' }} />
              <SlideInText 
               text="MEASUREMENT" 
               fontFamily={montserratBlack}
               size={64}
-              className="text-white"
+              style={{ color: 'white' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-transition-windy-swoosh-1474.wav" 
@@ -446,8 +450,8 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:25.900] km • °C • kg */}
         <Series.Sequence durationInFrames={15}>
-          <AbsoluteFill className="p-20 flex items-center gap-10">
-            <div className="text-white text-5xl" style={{ fontFamily: montserratMedium }}>
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', alignItems: 'center', gap: '40px' }}>
+            <div style={{ color: 'white', fontSize: '48px', fontFamily: montserratMedium }}>
               km • °C • kg
             </div>
              <Audio 
@@ -459,8 +463,8 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:26.400] mi • °F • lbs */}
         <Series.Sequence durationInFrames={15}>
-          <AbsoluteFill className="p-20 flex items-center justify-end text-right">
-            <div className="text-white text-5xl" style={{ fontFamily: montserratBold }}>
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' }}>
+            <div style={{ color: 'white', fontSize: '48px', fontFamily: montserratBold }}>
               mi • °F • lbs
             </div>
              <Audio 
@@ -472,12 +476,12 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:26.900] GIANTS */}
         <Series.Sequence durationInFrames={24}>
-           <AbsoluteFill className="bg-slate-900 flex items-center justify-center">
+           <AbsoluteFill style={{ backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
              <SlideInText 
               text="GIANTS" 
               fontFamily={montserratBlack}
               size={120}
-              className="text-white"
+              style={{ color: 'white' }}
             />
              <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-cool-impact-movie-trailer-2909.wav" 
@@ -488,10 +492,10 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:27.700] larger • faster • aggressive */}
         <Series.Sequence durationInFrames={18}>
-          <AbsoluteFill className="p-20 flex flex-col items-end justify-center text-right bg-blue-900/10">
-             <div className="text-white text-4xl mb-2" style={{ fontFamily: montserratBold }}>LARGER</div>
-             <div className="text-white text-4xl mb-2" style={{ fontFamily: montserratBold }}>FASTER</div>
-             <div className="text-white text-4xl" style={{ fontFamily: montserratBold }}>AGGRESSIVE</div>
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', textAlign: 'right', backgroundColor: 'rgba(30, 58, 138, 0.1)' }}>
+             <div style={{ color: 'white', fontSize: '36px', marginBottom: '8px', fontFamily: montserratBold }}>LARGER</div>
+             <div style={{ color: 'white', fontSize: '36px', marginBottom: '8px', fontFamily: montserratBold }}>FASTER</div>
+             <div style={{ color: 'white', fontSize: '36px', fontFamily: montserratBold }}>AGGRESSIVE</div>
              <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-fast-rocket-whoosh-1714.wav" 
               volume={0.6}
@@ -501,13 +505,13 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:28.300] steady • resources • trade */}
         <Series.Sequence durationInFrames={60}>
-          <AbsoluteFill className="p-20 flex flex-col justify-center bg-amber-900/10">
-            <div className="flex gap-4 mb-4 text-amber-500">
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundColor: 'rgba(120, 53, 15, 0.1)' }}>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', color: '#f59e0b' }}>
               <Compass size={40} />
               <Plane size={40} />
               <Network size={40} />
             </div>
-             <div className="text-white text-3xl" style={{ fontFamily: montserratMedium }}>
+             <div style={{ color: 'white', fontSize: '30px', fontFamily: montserratMedium }}>
                steady • resources • trade
              </div>
               <Audio 
@@ -519,12 +523,12 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:30.300] GLOBAL IMAGE */}
         <Series.Sequence durationInFrames={36}>
-          <AbsoluteFill className="flex items-center justify-center bg-zinc-900">
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#18181b' }}>
              <SlideInText 
               text="GLOBAL IMAGE" 
               fontFamily={montserratBlack}
               size={84}
-              className="text-white"
+              style={{ color: 'white' }}
             />
              <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-epic-orchestra-transition-2290.wav" 
@@ -535,9 +539,9 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:31.500] diplomatic • calm • cooperative */}
         <Series.Sequence durationInFrames={45}>
-          <AbsoluteFill className="p-20 flex flex-col justify-center bg-blue-900/10">
-             <Languages className="text-blue-500 mb-10" size={64} />
-             <div className="text-white text-3xl" style={{ fontFamily: montserratLight }}>
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundColor: 'rgba(30, 58, 138, 0.1)' }}>
+             <Languages style={{ color: '#3b82f6', marginBottom: '40px' }} size={64} />
+             <div style={{ color: 'white', fontSize: '30px', fontFamily: montserratLight }}>
                 diplomatic • calm • cooperative
              </div>
              <Audio 
@@ -549,9 +553,9 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:33.000] powerful • influential • unavoidable */}
         <Series.Sequence durationInFrames={21}>
-          <AbsoluteFill className="p-20 flex flex-col items-end justify-center text-right bg-red-900/10">
-             <Zap className="text-red-500 mb-10" size={64} />
-             <div className="text-white text-3xl uppercase font-black italic" style={{ fontFamily: montserratBlack }}>
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', textAlign: 'right', backgroundColor: 'rgba(127, 29, 29, 0.1)' }}>
+             <Zap style={{ color: '#ef4444', marginBottom: '40px' }} size={64} />
+             <div style={{ color: 'white', fontSize: '30px', textTransform: 'uppercase', fontWeight: 900, fontStyle: 'italic', fontFamily: montserratBlack }}>
                 powerful • influential • unavoidable
              </div>
              <Audio 
@@ -563,12 +567,12 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:33.700] REAL DIFFERENCE? */}
         <Series.Sequence durationInFrames={12}>
-           <AbsoluteFill className="flex items-center justify-center">
+           <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
              <SlideInText 
                 text="REAL DIFFERENCE?" 
                 fontFamily={montserratBold}
                 size={72}
-                className="text-white"
+                style={{ color: 'white' }}
               />
               <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-female-astonished-gasp-964.wav" 
@@ -579,9 +583,9 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:34.100] optimizes for BALANCE */}
         <Series.Sequence durationInFrames={30}>
-          <AbsoluteFill className="p-20 flex flex-col justify-center bg-emerald-950/20">
-             <Scale className="text-emerald-500 mb-10" size={80} />
-             <div className="text-white text-4xl" style={{ fontFamily: montserratBold }}>
+          <AbsoluteFill style={{ padding: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundColor: 'rgba(6, 78, 59, 0.2)' }}>
+             <Scale style={{ color: '#10b981', marginBottom: '40px' }} size={80} />
+             <div style={{ color: 'white', fontSize: '36px', fontFamily: montserratBold }}>
                 optimizes for BALANCE
              </div>
              <Audio 
@@ -593,9 +597,9 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:35.100] optimizes for DOMINANCE */}
         <Series.Sequence durationInFrames={24}>
-           <AbsoluteFill className="p-20 flex flex-col items-end justify-center text-right bg-orange-950/20">
-             <Target className="text-orange-500 mb-10" size={80} />
-             <div className="text-white text-4xl" style={{ fontFamily: montserratBlack }}>
+           <AbsoluteFill style={{ padding: '80px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', textAlign: 'right', backgroundColor: 'rgba(124, 45, 18, 0.2)' }}>
+             <Target style={{ color: '#f97316', marginBottom: '40px' }} size={80} />
+             <div style={{ color: 'white', fontSize: '36px', fontFamily: montserratBlack }}>
                 optimizes for DOMINANCE
              </div>
              <Audio 
@@ -607,12 +611,12 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:35.900] Same continent. */}
         <Series.Sequence durationInFrames={36}>
-          <AbsoluteFill className="flex items-center justify-center">
-            <Globe className="text-white/10 absolute w-full h-full p-40" />
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Globe style={{ color: 'rgba(255, 255, 255, 0.1)', position: 'absolute', width: '100%', height: '100%', padding: '160px' }} />
             <SlideInText 
               text="Same continent." 
               fontFamily={montserratMedium}
-              className="text-white"
+              style={{ color: 'white' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-flock-of-wild-geese-20.wav" 
@@ -623,15 +627,15 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:37.100] Different philosophies. */}
         <Series.Sequence durationInFrames={15}>
-          <AbsoluteFill className="flex items-center justify-center bg-black">
-             <div className="flex gap-10">
-               <Scale className="text-red-500" size={60} />
-               <Zap className="text-blue-500" size={60} />
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'black' }}>
+             <div style={{ display: 'flex', gap: '40px' }}>
+               <Scale style={{ color: '#ef4444' }} size={60} />
+               <Zap style={{ color: '#3b82f6' }} size={60} />
              </div>
              <SlideInText 
               text="Different philosophies." 
               fontFamily={montserratBold}
-              className="text-white absolute bottom-20"
+              style={{ color: 'white', position: 'absolute', bottom: '80px' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-vacuum-swoosh-transition-1465.wav" 
@@ -642,15 +646,15 @@ export const MainVideo: React.FC = () => {
 
         {/* [00:37.600] changes everything. */}
         <Series.Sequence durationInFrames={60}>
-          <AbsoluteFill className="flex items-center justify-center bg-black">
-             <div className="flex items-center gap-4 text-white/20 mb-10 text-2xl font-bold" style={{ fontFamily: montserratBlack }}>
+          <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'black' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: 'rgba(255, 255, 255, 0.2)', marginBottom: '40px', fontSize: '24px', fontWeight: 900, fontFamily: montserratBlack }}>
                CA <ArrowRight /> US
              </div>
              <SlideInText 
               text="changes everything." 
               fontFamily={montserratBlack}
               size={64}
-              className="text-white"
+              style={{ color: 'white' }}
             />
             <Audio 
               src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-cinematic-transition-swoosh-heartbeat-trailer-488.wav" 
