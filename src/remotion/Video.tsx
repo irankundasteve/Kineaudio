@@ -1,71 +1,87 @@
 import { loadFont as loadMontserrat } from "@remotion/google-fonts/Montserrat";
-import { loadFont as loadInter } from "@remotion/google-fonts/Inter";
-import { loadFont as loadSpaceGrotesk } from "@remotion/google-fonts/SpaceGrotesk";
-import { loadFont as loadOswald } from "@remotion/google-fonts/Oswald";
-import { Sequence, useCurrentFrame, useVideoConfig, Audio, interpolate, spring } from 'remotion';
+import { 
+  Sequence, 
+  useCurrentFrame, 
+  useVideoConfig, 
+  Audio, 
+  interpolate, 
+  spring, 
+  AbsoluteFill,
+  Series
+} from 'remotion';
 import React from 'react';
 import { 
-  Shield, 
-  DoorClosed, 
-  Banknote, 
-  Clock, 
-  Eye, 
-  Fingerprint, 
-  Gavel, 
+  MapPin, 
+  Flag, 
   Globe, 
+  Settings, 
+  Zap, 
+  Users, 
   Scale, 
-  Crown, 
-  Star, 
-  Rocket, 
-  Navigation, 
   Building2,
-  Users
+  Stethoscope,
+  CreditCard,
+  History,
+  Languages,
+  Trees,
+  Compass,
+  Trophy,
+  Ruler,
+  TrendingUp,
+  BarChart3,
+  Network,
+  Plane,
+  Heart,
+  Target,
+  ArrowRight,
+  ShieldCheck
 } from 'lucide-react';
 
 // Load fonts
 const { fontFamily: montserratBlack } = loadMontserrat("normal", { weights: ["900"] });
-const { fontFamily: interBold } = loadInter("normal", { weights: ["700"] });
-const { fontFamily: interSemiBold } = loadInter("normal", { weights: ["600"] });
-const { fontFamily: interMedium } = loadInter("normal", { weights: ["500"] });
-const { fontFamily: interRegular } = loadInter("normal", { weights: ["400"] });
-const { fontFamily: interLight } = loadInter("normal", { weights: ["300"] });
-const { fontFamily: spaceGroteskBold } = loadSpaceGrotesk("normal", { weights: ["700"] });
-const { fontFamily: oswaldBold } = loadOswald("normal", { weights: ["700"] });
-const { fontFamily: oswaldExtraBold } = loadOswald("normal", { weights: ["700"] });
+const { fontFamily: montserratBold } = loadMontserrat("normal", { weights: ["700"] });
+const { fontFamily: montserratSemiBold } = loadMontserrat("normal", { weights: ["600"] });
+const { fontFamily: montserratMedium } = loadMontserrat("normal", { weights: ["500"] });
+const { fontFamily: montserratRegular } = loadMontserrat("normal", { weights: ["400"] });
+const { fontFamily: montserratLight } = loadMontserrat("normal", { weights: ["300"] });
+const { fontFamily: montserratItalic } = loadMontserrat("italic", { weights: ["400"] });
 
-const FPS = 30;
+// Helper components for animations
+const SlideInText: React.FC<{ 
+  text: string; 
+  fontFamily: string; 
+  size?: number; 
+  className?: string;
+  delay?: number;
+  duration?: number;
+}> = ({ text, fontFamily, size = 48, className = "", delay = 0, duration = 12 }) => {
+  const frame = useCurrentFrame();
+  
+  const opacity = interpolate(
+    frame,
+    [delay, delay + duration],
+    [0, 1],
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+  );
 
-const TextLayer: React.FC<{
-  text: string;
-  font: string;
-  fontSize: number;
-  position: { x: number; y: number };
-  frame: number;
-  duration: number;
-  enterAnim?: (f: number) => React.CSSProperties;
-  exitAnim?: (f: number, dur: number) => React.CSSProperties;
-  idleAnim?: (f: number) => React.CSSProperties;
-}> = ({ text, font, fontSize, position, frame, duration, enterAnim, exitAnim, idleAnim }) => {
-  const enter = enterAnim ? enterAnim(frame) : { opacity: interpolate(frame, [0, 5], [0, 1]) };
-  const exit = exitAnim ? exitAnim(frame, duration) : { opacity: interpolate(frame, [duration - 5, duration], [1, 0]) };
-  const idle = idleAnim ? idleAnim(frame) : {};
+  const translateY = interpolate(
+    frame,
+    [delay, delay + duration],
+    [20, 0],
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+  );
 
   return (
-    <div style={{
-      position: 'absolute',
-      left: `${position.x}%`,
-      top: `${position.y}%`,
-      transform: 'translate(-50%, -50%)',
-      fontFamily: font,
-      fontSize: `${fontSize}px`,
-      color: 'white',
-      textAlign: 'center',
-      textTransform: 'uppercase',
-      lineHeight: '1.2',
-      ...enter,
-      ...exit,
-      ...idle,
-    }}>
+    <div 
+      className={className}
+      style={{ 
+        fontFamily, 
+        fontSize: size, 
+        opacity,
+        transform: `translateY(${translateY}px)`,
+        textAlign: 'center'
+      }}
+    >
       {text}
     </div>
   );
@@ -73,367 +89,585 @@ const TextLayer: React.FC<{
 
 export const MainVideo: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const s = (f: number, config = { damping: 12 }) => spring({ frame: f, fps, config });
 
   return (
-    <div style={{ flex: 1, backgroundColor: '#000', position: 'relative' }}>
-      
-      {/* 1. Intro (0:00 - 1.5s) */}
-      <Sequence from={0} durationInFrames={45}>
-        <div style={{ 
-          flex: 1, width: '100%', height: '100%', 
-          background: 'linear-gradient(135deg, #0A0E17, #1A2035)',
-          transform: `scale(${1 + interpolate(frame, [0, 45], [0, 0.02])})` 
-        }}>
-          <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/title_sting.wav" volume={0.5} />
-          <TextLayer text="CANADA vs USA — SAME CONTINENT, DIFFERENT WORLDS" font={montserratBlack} fontSize={64} position={{ x: 50, y: 40 }} frame={frame} duration={45} 
-            enterAnim={(f) => ({ opacity: interpolate(f, [0, 10], [0, 1]), transform: `translate(-50%, -50%) scale(${interpolate(f, [0, 15], [0.8, 1], { extrapolateRight: 'clamp' })})` })}
-            exitAnim={(f, dur) => ({ opacity: interpolate(f, [dur-5, dur], [1, 0]) })}
-            idleAnim={(f) => ({ transform: `translate(-50%, -50%) scale(${1 + Math.sin(f / 10) * 0.01})` })}
-          />
-          {/* 2ndVis: thin red/blue horizontal rule expanding from center */}
-          <div style={{
-            position: 'absolute',
-            top: '55%',
-            left: '50%',
-            height: '4px',
-            width: `${interpolate(frame, [0, 15], [0, 80], { extrapolateRight: 'clamp' })}%`,
-            background: 'linear-gradient(to right, #B22234 50%, #003399 50%)',
-            transform: 'translateX(-50%)',
-            borderRadius: '2px'
-          }} />
-        </div>
-      </Sequence>
-
-      {/* 2. Two Nations (1.533 - 2.433) */}
-      <Sequence from={46} durationInFrames={27}>
-        <div style={{ flex: 1, background: '#0A0E17', width: '100%', height: '100%' }}>
-          <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/pop.wav" volume={0.7} />
-          <TextLayer text="TWO NATIONS" font={interBold} fontSize={48} position={{ x: 20, y: 45 }} frame={frame - 46} duration={27} />
-        </div>
-      </Sequence>
-
-      {/* 3. One Border (2.466 - 3.266) */}
-      <Sequence from={74} durationInFrames={24}>
-        <div style={{ flex: 1, background: '#0A0E17', width: '100%', height: '100%' }}>
-          <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/click.wav" volume={0.6} />
-          <TextLayer text="ONE BORDER" font={interBold} fontSize={48} position={{ x: 80, y: 45 }} frame={frame - 74} duration={24} />
-          <div style={{ position: 'absolute', left: '50%', height: '100%', width: '2px', borderLeft: '2px dashed #444' }} />
-        </div>
-      </Sequence>
-
-      {/* 4. Zero Confusion (3.3 - 4.566) */}
-      <Sequence from={99} durationInFrames={38}>
-        <div style={{ 
-          flex: 1, background: 'radial-gradient(circle, #1C2536, #0F1520)', width: '100%', height: '100%',
-          transform: `scale(${1.05 - interpolate(frame - 99, [0, 38], [0, 0.05])})` 
-        }}>
-          <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/whoosh.wav" volume={0.4} />
-          <TextLayer text="ZERO CONFUSION… ONCE YOU LOOK CLOSER" font={interMedium} fontSize={32} position={{ x: 50, y: 50 }} frame={frame - 99} duration={38}
-            idleAnim={(f) => ({ letterSpacing: `${f / 10}px` })} />
-          
-          {/* 2ndVis: concentric circles expanding from center */}
-          {[1, 2, 3].map((i) => (
-            <div key={i} style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                border: '2px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '50%',
-                width: `${interpolate(frame - 99, [0, 38], [0, 800 + i * 200])}px`,
-                height: `${interpolate(frame - 99, [0, 38], [0, 800 + i * 200])}px`,
-                transform: 'translate(-50%, -50%)',
-                opacity: interpolate(frame - 99, [0, 38], [0.5, 0])
-            }} />
-          ))}
-        </div>
-      </Sequence>
-
-      {/* 5. Share Geography (4.6 - 5.6) */}
-      <Sequence from={138} durationInFrames={30}>
-        <div style={{ flex: 1, background: '#1A2035', width: '100%', height: '100%' }}>
-          <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/slide.wav" volume={0.5} />
-          <TextLayer text="SHARE GEOGRAPHY—" font={interRegular} fontSize={28} position={{ x: 50, y: 75 }} frame={frame - 138} duration={30} />
-        </div>
-      </Sequence>
-
-      {/* 6. Systems (5.633 - 7.133) */}
-      <Sequence from={169} durationInFrames={45}>
-        <div style={{ flex: 1, display: 'flex', width: '100%', height: '100%' }}>
-          <div style={{ flex: 1, background: '#003399' }} /><div style={{ flex: 1, background: '#B22234' }} />
-          <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/glitch.wav" volume={0.7} />
-          <TextLayer text="VERY DIFFERENT SYSTEMS" font={spaceGroteskBold} fontSize={36} position={{ x: 50, y: 50 }} frame={frame - 169} duration={45} 
-            enterAnim={(f) => ({ transform: `translate(-50%, -50%) scale(${s(f)})` })}
-          />
-        </div>
-      </Sequence>
-
-      {/* 7. Identity Intro (7.166 - 8.366) */}
-      <Sequence from={215} durationInFrames={36}>
-        <div style={{ flex: 1, background: '#0A0E17', width: '100%', height: '100%' }}>
-            <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/click.wav" />
-            <TextLayer text="START WITH IDENTITY" font={interBold} fontSize={28} position={{ x: 50, y: 25 }} frame={frame - 215} duration={36} />
-            {/* 2ndVis: fingerprint scan line */}
-            <div style={{
-                position: 'absolute',
-                top: `${interpolate(frame - 215, [0, 36], [0, 100])}%`,
-                left: '0',
-                width: '100%',
-                height: '2px',
-                background: 'rgba(0, 255, 255, 0.4)',
-                boxShadow: '0 0 20px rgba(0, 255, 255, 0.8)'
-            }} />
-        </div>
-      </Sequence>
-
-      {/* 8. Canada Multiculturalism (8.4 - 10.466) */}
-      <Sequence from={252} durationInFrames={62}>
-        <div style={{ flex: 1, background: '#E6E9ED', width: '100%', height: '100%' }}>
-            <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/typewriter.wav" />
-            <TextLayer text="CANADA LEANS INTO MULTICULTURALISM" font={interSemiBold} fontSize={24} position={{ x: 30, y: 40 }} frame={frame - 252} duration={62} 
-                enterAnim={(f) => ({ opacity: interpolate(f, [0, 20], [0, 1]), color: '#003399' })}
-            />
-        </div>
-      </Sequence>
-
-      {/* 9. USA Individualism (10.5 - 12.766) */}
-      <Sequence from={315} durationInFrames={68}>
-        <div style={{ flex: 1, background: '#2C3E50', width: '100%', height: '100%' }}>
-            <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/bass_hit.wav" />
-            <TextLayer text="USA: INDIVIDUALISM" font={oswaldBold} fontSize={26} position={{ x: 70, y: 45 }} frame={frame - 315} duration={68} 
-                idleAnim={(f) => ({ fontStyle: f % 10 < 5 ? 'italic' : 'normal' })}
-            />
-        </div>
-      </Sequence>
-
-      {/* 10. Governance (12.8 - 13.9) */}
-      <Sequence from={384} durationInFrames={33}>
-        <div style={{ flex: 1, background: '#0A0E17', width: '100%', height: '100%' }}>
-            <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/pop.wav" />
-            <TextLayer text="NOW GOVERNANCE" font={interBold} fontSize={28} position={{ x: 50, y: 35 }} frame={frame - 384} duration={33} />
-        </div>
-      </Sequence>
-
-      {/* 11-12. Canada Monarchy/Parliament (13.933 - 17.166) */}
-      <Sequence from={418} durationInFrames={97}>
-        <div style={{ flex: 1, background: '#003399', width: '100%', height: '100%' }}>
-            <TextLayer text="CONSTITUTIONAL MONARCHY" font={interMedium} fontSize={24} position={{ x: 25, y: 50 }} frame={frame - 418} duration={97} />
-            <TextLayer text="PARLIAMENTARY SYSTEM" font={interRegular} fontSize={22} position={{ x: 25, y: 65 }} frame={frame - 418} duration={97} />
-        </div>
-      </Sequence>
-
-      {/* 13-14. USA Republic (17.2 - 19.7) */}
-      <Sequence from={516} durationInFrames={75}>
-        <div style={{ flex: 1, background: '#B22234', width: '100%', height: '100%' }}>
-            <TextLayer text="CONSTITUTIONAL REPUBLIC" font={oswaldExtraBold} fontSize={26} position={{ x: 75, y: 40 }} frame={frame - 516} duration={75} />
-            <TextLayer text="NO MONARCHY" font={interSemiBold} fontSize={24} position={{ x: 75, y: 55 }} frame={frame - 516} duration={75} />
-        </div>
-      </Sequence>
-
-      {/* 15. Power Split (19.733 - 21.9) */}
-      <Sequence from={592} durationInFrames={65}>
-        <div style={{ flex: 1, background: '#1A2035', width: '100%', height: '100%', overflow: 'hidden' }}>
-            <TextLayer text="POWER SPLIT BY DESIGN" font={spaceGroteskBold} fontSize={22} position={{ x: 50, y: 50 }} frame={frame - 592} duration={65} 
-                enterAnim={(f) => ({ transform: `translate(-50%, -50%) scale(${s(f)})` })}
-            />
-            {/* 2ndVis: 3 interlocking triangles */}
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.2 }}>
-                {[0, 120, 240].map((deg) => (
-                    <div key={deg} style={{
-                        position: 'absolute',
-                        width: '0',
-                        height: '0',
-                        borderLeft: '150px solid transparent',
-                        borderRight: '150px solid transparent',
-                        borderBottom: '260px solid white',
-                        transform: `rotate(${deg + frame}deg) translate(0, -100px)`,
-                    }} />
-                ))}
+    <AbsoluteFill style={{ backgroundColor: 'black', overflow: 'hidden' }}>
+      <Series>
+        {/* [00:00.000] Canada vs USA — Same Continent, Different Worlds */}
+        <Series.Sequence durationInFrames={30}>
+          <AbsoluteFill className="flex items-center justify-center">
+            <div className="absolute inset-0 flex">
+              <div className="w-1/2 h-full bg-[#FF0000] opacity-80" />
+              <div className="w-1/2 h-full bg-[#002868] opacity-80" />
             </div>
-        </div>
-      </Sequence>
+            
+            <div className="relative z-10">
+              <SlideInText 
+                text="CANADA vs USA" 
+                fontFamily={montserratBold}
+                size={92}
+                className="text-white drop-shadow-2xl"
+              />
+              <div className="text-white/80 text-center mt-4 text-2xl" style={{ fontFamily: montserratMedium }}>
+                Same Continent, Different Worlds
+              </div>
+            </div>
 
-      {/* 16. Sharper Line (21.933 - 23.3) */}
-      <Sequence from={658} durationInFrames={41}>
-        <div style={{ flex: 1, background: '#0A0E17', width: '100%', height: '100%' }}>
-          <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/click.wav" volume={0.6} />
-          <TextLayer text="SHARPER LINE" font={interBold} fontSize={26} position={{ x: 50, y: 40 }} frame={frame - 658} duration={41} 
-            idleAnim={(f) => ({ borderBottom: `${interpolate(f, [0, 10], [0, 4])}px solid #B22234` })}
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-intro-transition-1146.wav" 
+              volume={1.0}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:01.000] Two nations. */}
+        <Series.Sequence durationInFrames={15}>
+          <AbsoluteFill className="flex items-center justify-center">
+            <div className="absolute inset-0 flex">
+              <div className="w-1/2 h-full border-r border-white/20" />
+            </div>
+            <SlideInText 
+              text="Two nations." 
+              fontFamily={montserratSemiBold}
+              className="text-white absolute bottom-20"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-fast-small-sweep-transition-166.wav" 
+              volume={0.7}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:01.500] One border. */}
+        <Series.Sequence durationInFrames={15}>
+          <AbsoluteFill className="flex items-center justify-center">
+            <div className="w-1 h-full bg-white/40 absolute left-1/2" />
+            <SlideInText 
+              text="One border." 
+              fontFamily={montserratSemiBold}
+              className="text-white"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-arrow-whoosh-1491.wav" 
+              volume={0.5}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:02.000] Zero confusion… once you look closer. */}
+        <Series.Sequence durationInFrames={30}>
+          <AbsoluteFill className="flex items-center justify-center bg-zinc-900">
+             <Network className="text-white/5 absolute w-full h-full p-40" />
+            <SlideInText 
+              text="look closer →" 
+              fontFamily={montserratItalic}
+              size={48}
+              className="text-amber-500 absolute bottom-20 right-20"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-cinematic-transition-swoosh-heartbeat-trailer-488.wav" 
+              volume={0.6}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:03.000] different systems */}
+        <Series.Sequence durationInFrames={75}>
+          <AbsoluteFill className="flex items-center justify-center">
+            <Globe className="text-white/20 w-[400px] h-[400px]" />
+            <SlideInText 
+              text="different systems" 
+              fontFamily={montserratBold}
+              className="text-white absolute bottom-20"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-technological-futuristic-hum-2133.wav" 
+              volume={0.3}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:05.500] IDENTITY */}
+        <Series.Sequence durationInFrames={24}>
+          <AbsoluteFill className="flex items-center justify-center">
+            <SlideInText 
+              text="IDENTITY" 
+              fontFamily={montserratBlack}
+              size={84}
+              className="text-white"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-melodical-flute-music-notification-2310.wav" 
+              volume={0.8}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:06.300] multiculturalism • policy • deliberate */}
+        <Series.Sequence durationInFrames={54}>
+          <AbsoluteFill className="p-20 flex flex-col justify-center gap-10">
+            <div className="flex items-center gap-6 text-red-500">
+              <Users size={64} />
+              <span className="text-white text-4xl" style={{ fontFamily: montserratMedium }}>multiculturalism</span>
+            </div>
+            <div className="flex items-center gap-6 text-red-500">
+              <ShieldCheck size={64} />
+              <span className="text-white text-4xl" style={{ fontFamily: montserratMedium }}>policy</span>
+            </div>
+            <div className="flex items-center gap-6 text-red-500">
+              <Target size={64} />
+              <span className="text-white text-4xl" style={{ fontFamily: montserratMedium }}>deliberate</span>
+            </div>
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-keyboard-typing-1386.wav" 
+              volume={0.4}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:08.100] freedom first */}
+        <Series.Sequence durationInFrames={51}>
+          <AbsoluteFill className="flex items-center justify-center bg-blue-900/20">
+            <SlideInText 
+              text="freedom first" 
+              fontFamily={montserratBold}
+              className="text-white uppercase italic"
+              size={72}
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-cinematic-laser-gun-thunder-1287.wav" 
+              volume={0.6}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:09.800] GOVERNANCE */}
+        <Series.Sequence durationInFrames={30}>
+          <AbsoluteFill className="flex items-center justify-center bg-zinc-900">
+            <SlideInText 
+              text="GOVERNANCE" 
+              fontFamily={montserratBlack}
+              size={84}
+              className="text-white"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-trumpet-fanfare-2293.wav" 
+              volume={0.7}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:10.800] constitutional monarchy • parliamentary */}
+        <Series.Sequence durationInFrames={60}>
+          <AbsoluteFill className="p-20 flex flex-col justify-center">
+            <History className="text-red-500 mb-10" size={80} />
+            <div className="text-white text-3xl" style={{ fontFamily: montserratMedium }}>
+              constitutional monarchy • parliamentary
+            </div>
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-tick-tock-clock-timer-1045.wav" 
+              volume={0.3}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:12.800] republic • no monarchy */}
+        <Series.Sequence durationInFrames={42}>
+          <AbsoluteFill className="p-20 flex flex-col justify-center items-end text-right">
+             <div className="text-white text-5xl font-black mb-6 flex gap-4" style={{ fontFamily: montserratBold }}>
+                <span className="text-red-600 line-through">MONARCHY</span> NO
+             </div>
+             <div className="text-white text-4xl" style={{ fontFamily: montserratBold }}>
+                REPUBLIC
+             </div>
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-fast-whoosh-transition-1490.wav" 
+              volume={0.6}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:14.200] executive • legislative • judicial */}
+        <Series.Sequence durationInFrames={45}>
+          <AbsoluteFill className="flex items-center justify-center gap-10">
+            <div className="flex flex-col items-center gap-4 text-blue-400">
+              <Building2 size={64} />
+              <span className="text-white text-lg" style={{ fontFamily: montserratSemiBold }}>Executive</span>
+            </div>
+            <div className="flex flex-col items-center gap-4 text-red-400">
+              <Users size={64} />
+              <span className="text-white text-lg" style={{ fontFamily: montserratSemiBold }}>Legislative</span>
+            </div>
+            <div className="flex flex-col items-center gap-4 text-amber-400">
+              <Scale size={64} />
+              <span className="text-white text-lg" style={{ fontFamily: montserratSemiBold }}>Judicial</span>
+            </div>
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-clock-countdown-bleeps-916.wav" 
+              volume={0.5}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:15.700] HEALTHCARE */}
+        <Series.Sequence durationInFrames={15}>
+          <AbsoluteFill className="flex items-center justify-center">
+            <div className="w-1 bg-red-600 h-full absolute" />
+            <SlideInText 
+              text="HEALTHCARE" 
+              fontFamily={montserratBlack}
+              size={84}
+              className="text-white bg-black px-10"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-cinematic-whoosh-fast-transition-1492.wav" 
+              volume={0.7}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:16.200] publicly funded • no door payment */}
+        <Series.Sequence durationInFrames={30}>
+          <AbsoluteFill className="p-20 flex flex-col justify-center bg-blue-900/10">
+            <Stethoscope className="text-blue-500 mb-10" size={80} />
+            <div className="text-white text-3xl" style={{ fontFamily: montserratMedium }}>
+              publicly funded • no door payment
+            </div>
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-small-crowd-laugh-and-applause-422.wav" 
+              volume={0.2}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:17.200] $0 at door */}
+        <Series.Sequence durationInFrames={30}>
+          <AbsoluteFill className="flex items-center justify-center">
+            <SlideInText 
+              text="$0 AT DOOR" 
+              fontFamily={montserratBold}
+              size={84}
+              className="text-green-500"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-cartoon-toy-whistle-616.wav" 
+              volume={0.3}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:18.200] private • insurance-driven */}
+        <Series.Sequence durationInFrames={36}>
+          <AbsoluteFill className="p-20 flex flex-col items-end justify-center text-right bg-red-900/10">
+            <CreditCard className="text-red-500 mb-10" size={80} />
+            <div className="text-white text-3xl" style={{ fontFamily: montserratMedium }}>
+              private • insurance-driven
+            </div>
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-vintage-telephone-ringtone-1356.wav" 
+              volume={0.5}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:19.400] access • speed • cost */}
+        <Series.Sequence durationInFrames={45}>
+          <AbsoluteFill className="flex items-center justify-center gap-10">
+            <span className="text-white text-3xl" style={{ fontFamily: montserratSemiBold }}>ACCESS</span>
+            <span className="text-white text-3xl" style={{ fontFamily: montserratSemiBold }}>SPEED</span>
+            <span className="text-white text-3xl" style={{ fontFamily: montserratSemiBold }}>COST</span>
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-game-show-suspense-waiting-667.wav" 
+              volume={0.3}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:20.900] CULTURE */}
+        <Series.Sequence durationInFrames={12}>
+          <AbsoluteFill className="flex items-center justify-center bg-slate-900">
+            <SlideInText 
+              text="CULTURE" 
+              fontFamily={montserratBlack}
+              size={84}
+              className="text-white"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-air-woosh-1489.wav" 
+              volume={0.5}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:21.300] restraint • politeness • consensus */}
+        <Series.Sequence durationInFrames={60}>
+          <AbsoluteFill className="p-20 flex items-center gap-10">
+            <Trees className="text-emerald-500" size={120} />
+             <div className="text-white text-3xl" style={{ fontFamily: montserratLight }}>
+              restraint • politeness • consensus
+            </div>
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-little-birds-singing-in-the-trees-17.wav" 
+              volume={0.2}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:23.300] confidence • directness • competition */}
+        <Series.Sequence durationInFrames={60}>
+          <AbsoluteFill className="p-20 flex items-center justify-end text-right gap-10">
+            <div className="text-white text-3xl uppercase font-black" style={{ fontFamily: montserratBold }}>
+              confidence • directness • competition
+            </div>
+            <Trophy className="text-amber-500" size={120} />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-martial-arts-fast-punch-2047.wav" 
+              volume={0.6}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:25.300] MEASUREMENT */}
+        <Series.Sequence durationInFrames={18}>
+          <AbsoluteFill className="flex items-center justify-center p-20 bg-zinc-900">
+             <Ruler className="text-white/10 absolute scale-[3]" />
+             <SlideInText 
+              text="MEASUREMENT" 
+              fontFamily={montserratBlack}
+              size={64}
+              className="text-white"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-transition-windy-swoosh-1474.wav" 
+              volume={0.4}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:25.900] km • °C • kg */}
+        <Series.Sequence durationInFrames={15}>
+          <AbsoluteFill className="p-20 flex items-center gap-10">
+            <div className="text-white text-5xl" style={{ fontFamily: montserratMedium }}>
+              km • °C • kg
+            </div>
+             <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-fast-rocket-whoosh-1714.wav" 
+              volume={0.5}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:26.400] mi • °F • lbs */}
+        <Series.Sequence durationInFrames={15}>
+          <AbsoluteFill className="p-20 flex items-center justify-end text-right">
+            <div className="text-white text-5xl" style={{ fontFamily: montserratBold }}>
+              mi • °F • lbs
+            </div>
+             <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-air-zoom-vacuum-2608.wav" 
+              volume={0.4}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:26.900] GIANTS */}
+        <Series.Sequence durationInFrames={24}>
+           <AbsoluteFill className="bg-slate-900 flex items-center justify-center">
+             <SlideInText 
+              text="GIANTS" 
+              fontFamily={montserratBlack}
+              size={120}
+              className="text-white"
+            />
+             <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-cool-impact-movie-trailer-2909.wav" 
+              volume={0.7}
+            />
+           </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:27.700] larger • faster • aggressive */}
+        <Series.Sequence durationInFrames={18}>
+          <AbsoluteFill className="p-20 flex flex-col items-end justify-center text-right bg-blue-900/10">
+             <div className="text-white text-4xl mb-2" style={{ fontFamily: montserratBold }}>LARGER</div>
+             <div className="text-white text-4xl mb-2" style={{ fontFamily: montserratBold }}>FASTER</div>
+             <div className="text-white text-4xl" style={{ fontFamily: montserratBold }}>AGGRESSIVE</div>
+             <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-fast-rocket-whoosh-1714.wav" 
+              volume={0.6}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:28.300] steady • resources • trade */}
+        <Series.Sequence durationInFrames={60}>
+          <AbsoluteFill className="p-20 flex flex-col justify-center bg-amber-900/10">
+            <div className="flex gap-4 mb-4 text-amber-500">
+              <Compass size={40} />
+              <Plane size={40} />
+              <Network size={40} />
+            </div>
+             <div className="text-white text-3xl" style={{ fontFamily: montserratMedium }}>
+               steady • resources • trade
+             </div>
+              <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-crickets-and-insects-in-the-wild-ambience-39.wav" 
+              volume={0.1}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:30.300] GLOBAL IMAGE */}
+        <Series.Sequence durationInFrames={36}>
+          <AbsoluteFill className="flex items-center justify-center bg-zinc-900">
+             <SlideInText 
+              text="GLOBAL IMAGE" 
+              fontFamily={montserratBlack}
+              size={84}
+              className="text-white"
+            />
+             <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-epic-orchestra-transition-2290.wav" 
+              volume={0.5}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:31.500] diplomatic • calm • cooperative */}
+        <Series.Sequence durationInFrames={45}>
+          <AbsoluteFill className="p-20 flex flex-col justify-center bg-blue-900/10">
+             <Languages className="text-blue-500 mb-10" size={64} />
+             <div className="text-white text-3xl" style={{ fontFamily: montserratLight }}>
+                diplomatic • calm • cooperative
+             </div>
+             <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-stadium-crowd-light-applause-362.wav" 
+              volume={0.2}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:33.000] powerful • influential • unavoidable */}
+        <Series.Sequence durationInFrames={21}>
+          <AbsoluteFill className="p-20 flex flex-col items-end justify-center text-right bg-red-900/10">
+             <Zap className="text-red-500 mb-10" size={64} />
+             <div className="text-white text-3xl uppercase font-black italic" style={{ fontFamily: montserratBlack }}>
+                powerful • influential • unavoidable
+             </div>
+             <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-movie-trailer-epic-impact-2908.wav" 
+              volume={0.8}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:33.700] REAL DIFFERENCE? */}
+        <Series.Sequence durationInFrames={12}>
+           <AbsoluteFill className="flex items-center justify-center">
+             <SlideInText 
+                text="REAL DIFFERENCE?" 
+                fontFamily={montserratBold}
+                size={72}
+                className="text-white"
+              />
+              <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-female-astonished-gasp-964.wav" 
+              volume={0.4}
+            />
+           </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:34.100] optimizes for BALANCE */}
+        <Series.Sequence durationInFrames={30}>
+          <AbsoluteFill className="p-20 flex flex-col justify-center bg-emerald-950/20">
+             <Scale className="text-emerald-500 mb-10" size={80} />
+             <div className="text-white text-4xl" style={{ fontFamily: montserratBold }}>
+                optimizes for BALANCE
+             </div>
+             <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-mystwrious-bass-pulse-2298.wav" 
+              volume={0.4}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:35.100] optimizes for DOMINANCE */}
+        <Series.Sequence durationInFrames={24}>
+           <AbsoluteFill className="p-20 flex flex-col items-end justify-center text-right bg-orange-950/20">
+             <Target className="text-orange-500 mb-10" size={80} />
+             <div className="text-white text-4xl" style={{ fontFamily: montserratBlack }}>
+                optimizes for DOMINANCE
+             </div>
+             <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-aggressive-beast-roar-13.wav" 
+              volume={0.6}
+            />
+           </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:35.900] Same continent. */}
+        <Series.Sequence durationInFrames={36}>
+          <AbsoluteFill className="flex items-center justify-center">
+            <Globe className="text-white/10 absolute w-full h-full p-40" />
+            <SlideInText 
+              text="Same continent." 
+              fontFamily={montserratMedium}
+              className="text-white"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-flock-of-wild-geese-20.wav" 
+              volume={0.3}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:37.100] Different philosophies. */}
+        <Series.Sequence durationInFrames={15}>
+          <AbsoluteFill className="flex items-center justify-center bg-black">
+             <div className="flex gap-10">
+               <Scale className="text-red-500" size={60} />
+               <Zap className="text-blue-500" size={60} />
+             </div>
+             <SlideInText 
+              text="Different philosophies." 
+              fontFamily={montserratBold}
+              className="text-white absolute bottom-20"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-vacuum-swoosh-transition-1465.wav" 
+              volume={0.5}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:37.600] changes everything. */}
+        <Series.Sequence durationInFrames={60}>
+          <AbsoluteFill className="flex items-center justify-center bg-black">
+             <div className="flex items-center gap-4 text-white/20 mb-10 text-2xl font-bold" style={{ fontFamily: montserratBlack }}>
+               CA <ArrowRight /> US
+             </div>
+             <SlideInText 
+              text="changes everything." 
+              fontFamily={montserratBlack}
+              size={64}
+              className="text-white"
+            />
+            <Audio 
+              src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-cinematic-transition-swoosh-heartbeat-trailer-488.wav" 
+              volume={0.7}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* [00:39.600] End */}
+        <Series.Sequence durationInFrames={60}>
+           <AbsoluteFill className="bg-black" />
+           <Audio 
+            src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/mixkit-light-rain-loop-2393.wav" 
+            volume={0.1}
           />
-          <div style={{ position: 'absolute', left: '50%', top: '20%', bottom: '20%', width: '4px', backgroundColor: '#B22234' }} />
-        </div>
-      </Sequence>
-
-      {/* 17. Publicly Funded (23.333 - 25.1) */}
-      <Sequence from={700} durationInFrames={53}>
-        <div style={{ flex: 1, background: '#003399', width: '100%', height: '100%' }}>
-          <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/pop.wav" volume={0.5} />
-          <TextLayer text="PUBLICLY FUNDED" font={interMedium} fontSize={22} position={{ x: 30, y: 50 }} frame={frame - 700} duration={53} />
-          {/* 2ndVis: shield icon pulse */}
-          <div style={{ position: 'absolute', left: '30%', top: '30%', opacity: 0.2 + 0.1 * Math.sin(frame / 5) }}>
-            <Shield size={200} color="white" />
-          </div>
-        </div>
-      </Sequence>
-
-      {/* 18. No Pay (25.133 - 26.466) */}
-      <Sequence from={754} durationInFrames={40}>
-        <div style={{ flex: 1, background: '#001F55', width: '100%', height: '100%' }}>
-          <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/whoosh.wav" volume={0.4} />
-          <TextLayer text="NO PAY AT THE DOOR" font={interRegular} fontSize={20} position={{ x: 30, y: 65 }} frame={frame - 754} duration={40} />
-          <div style={{ position: 'absolute', left: '30%', top: '20%', opacity: 0.1 }}>
-            <DoorClosed size={200} color="white" />
-          </div>
-        </div>
-      </Sequence>
-
-      {/* 19. Largely Private (26.5 - 28.1) */}
-      <Sequence from={795} durationInFrames={48}>
-        <div style={{ flex: 1, background: '#B22234', width: '100%', height: '100%' }}>
-          <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/bass_hit.wav" volume={0.7} />
-          <TextLayer text="LARGELY PRIVATE" font={interSemiBold} fontSize={22} position={{ x: 70, y: 50 }} frame={frame - 795} duration={48} />
-          <div style={{ position: 'absolute', right: '15%', top: '30%', opacity: 0.1 }}>
-            <Banknote size={240} color="white" />
-          </div>
-        </div>
-      </Sequence>
-
-      {/* 20. Insurance Decides (28.133 - 30.066) */}
-      <Sequence from={844} durationInFrames={58}>
-        <div style={{ flex: 1, background: 'linear-gradient(to bottom, #B22234, #7A1A24)', width: '100%', height: '100%' }}>
-          <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/click.wav" volume={0.5} />
-          <TextLayer text="INSURANCE DECIDES ACCESS, SPEED, COST" font={interMedium} fontSize={20} position={{ x: 70, y: 65 }} frame={frame - 844} duration={58} />
-          {/* 2ndVis: ticking clock hands */}
-          <div style={{ position: 'absolute', right: '15%', top: '30%', opacity: 0.3 }}>
-            <Clock size={160} color="white" style={{ transform: `rotate(${frame * 5}deg)` }} />
-          </div>
-        </div>
-      </Sequence>
-
-      {/* 21-23. Culture (30.1 - 35.9) */}
-      <Sequence from={903} durationInFrames={37}>
-          <div style={{ flex: 1, background: '#0A0E17', width: '100%', height: '100%' }}>
-              <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/sting.wav" />
-              <TextLayer text="CULTURE? SUBTLE—BUT REAL" font={interBold} fontSize={26} position={{ x: 50, y: 40 }} frame={frame - 903} duration={37} idleAnim={() => ({ fontStyle: 'italic' })} />
-          </div>
-      </Sequence>
-      <Sequence from={940} durationInFrames={71}>
-          <div style={{ flex: 1, background: '#E6E9ED', width: '100%', height: '100%' }}>
-              <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/typewriter.wav" />
-              <TextLayer text="RESTRAINT. POLITENESS. CONSENSUS" font={interLight} fontSize={22} position={{ x: 35, y: 50 }} frame={frame - 940} duration={71} />
-          </div>
-      </Sequence>
-      <Sequence from={1011} durationInFrames={66}>
-          <div style={{ flex: 1, background: '#1C2833', width: '100%', height: '100%' }}>
-              <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/bass_hit.wav" />
-              <TextLayer text="CONFIDENCE. DIRECTNESS. COMPETITION" font={oswaldBold} fontSize={24} position={{ x: 65, y: 50 }} frame={frame - 1011} duration={66} />
-          </div>
-      </Sequence>
-
-      {/* 24-26. Measurement (36s - 40s) */}
-      <Sequence from={1077} durationInFrames={40}>
-          <div style={{ flex: 1, background: '#0A0E17', width: '100%', height: '100%' }}>
-              <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/click.wav" />
-              <TextLayer text="MEASUREMENT TELLS A STORY" font={interMedium} fontSize={24} position={{ x: 50, y: 35 }} frame={frame - 1077} duration={40} />
-          </div>
-      </Sequence>
-      <Sequence from={1117} durationInFrames={100}>
-          {frame < 1167 ? (
-              <div style={{ flex: 1, background: '#003399', width: '100%', height: '100%' }}>
-                  <TextLayer text="KILOMETERS, CELSIUS, KILOGRAMS" font={interSemiBold} fontSize={20} position={{ x: 30, y: 55 }} frame={frame - 1117} duration={50} />
-              </div>
-          ) : (
-              <div style={{ flex: 1, background: '#B22234', width: '100%', height: '100%' }}>
-                  <TextLayer text="MILES, FAHRENHEIT, POUNDS" font={interSemiBold} fontSize={20} position={{ x: 70, y: 55 }} frame={frame - 1167} duration={50} />
-              </div>
-          )}
-      </Sequence>
-
-      {/* 27-29. Economy (40.6s - 46s) */}
-      <Sequence from={1218} durationInFrames={52}>
-          <div style={{ flex: 1, background: '#1C2536', width: '100%', height: '100%' }}>
-              <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/sting.wav" />
-              <TextLayer text="BOTH ARE GIANTS" font={interBold} fontSize={26} position={{ x: 50, y: 45 }} frame={frame - 1218} duration={52} 
-                idleAnim={(f) => ({ transform: `translate(-50%, -50%) scale(${1 + Math.sin(f / 5) * 0.05})` })}
-              />
-          </div>
-      </Sequence>
-      <Sequence from={1270} durationInFrames={65}>
-          <div style={{ flex: 1, background: '#B22234', width: '100%', height: '100%' }}>
-              <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/whoosh.wav" />
-              <TextLayer text="USA: LARGER. FASTER. AGGRESSIVE" font={oswaldExtraBold} fontSize={22} position={{ x: 70, y: 50 }} frame={frame - 1270} duration={65} />
-          </div>
-      </Sequence>
-      <Sequence from={1335} durationInFrames={69}>
-          <div style={{ flex: 1, background: '#003399', width: '100%', height: '100%' }}>
-              <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/typewriter.wav" />
-              <TextLayer text="CANADA: STEADIER. RESOURCE-RICH." font={interMedium} fontSize={20} position={{ x: 30, y: 50 }} frame={frame - 1335} duration={69} />
-          </div>
-      </Sequence>
-
-      {/* 30-32. Global Image (46.8s - 52s) */}
-      <Sequence from={1404} durationInFrames={42}>
-          <div style={{ flex: 1, background: '#0A0E17', width: '100%', height: '100%' }}>
-              <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/pop.wav" />
-              <TextLayer text="GLOBAL IMAGE" font={interBold} fontSize={24} position={{ x: 50, y: 40 }} frame={frame - 1404} duration={42} />
-          </div>
-      </Sequence>
-      <Sequence from={1446} durationInFrames={124}>
-          {frame < 1504 ? (
-              <div style={{ flex: 1, background: '#003399', width: '100%', height: '100%' }}>
-                  <TextLayer text="DIPLOMATIC. CALM. COOPERATIVE" font={interLight} fontSize={22} position={{ x: 35, y: 55 }} frame={frame - 1446} duration={58} />
-              </div>
-          ) : (
-              <div style={{ flex: 1, background: '#B22234', width: '100%', height: '100%' }}>
-                  <TextLayer text="POWERFUL. INFLUENTIAL. IGNORE?" font={oswaldBold} fontSize={24} position={{ x: 65, y: 55 }} frame={frame - 1504} duration={66} />
-              </div>
-          )}
-      </Sequence>
-
-      {/* 33-41. Conclusion (52.3s - END) */}
-      <Sequence from={1570} durationInFrames={44}>
-          <div style={{ flex: 1, background: '#111820', width: '100%', height: '100%' }}>
-              <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/sting.wav" />
-              <TextLayer text="THE REAL DIFFERENCE?" font={interBold} fontSize={26} position={{ x: 50, y: 45 }} frame={frame - 1570} duration={44} />
-          </div>
-      </Sequence>
-      <Sequence from={1614} durationInFrames={54}>
-          <div style={{ flex: 1, background: '#003399', width: '100%', height: '100%' }}>
-              <TextLayer text="CANADA: BALANCE" font={interMedium} fontSize={22} position={{ x: 40, y: 50 }} frame={frame - 1614} duration={54} />
-          </div>
-      </Sequence>
-      <Sequence from={1668} durationInFrames={54}>
-          <div style={{ flex: 1, background: '#B22234', width: '100%', height: '100%' }}>
-              <TextLayer text="USA: DOMINANCE" font={interMedium} fontSize={22} position={{ x: 60, y: 50 }} frame={frame - 1668} duration={54} />
-          </div>
-      </Sequence>
-      <Sequence from={1722} durationInFrames={66}>
-          <div style={{ flex: 1, background: '#0A0E17', width: '100%', height: '100%' }}>
-              <TextLayer text="SAME CONTINENT. DIFFERENT PHILOSOPHIES." font={interSemiBold} fontSize={24} position={{ x: 50, y: 50 }} frame={frame - 1722} duration={66} />
-          </div>
-      </Sequence>
-      <Sequence from={1788} durationInFrames={57}>
-          <div style={{ flex: 1, background: '#000', width: '100%', height: '100%', overflow: 'hidden' }}>
-              <Audio src="https://raw.githubusercontent.com/irankunda-Steve/Sound-effects/main/sfx/sting.wav" volume={0.8} />
-              <TextLayer text="AND THAT… CHANGES EVERYTHING." font={montserratBlack} fontSize={36} position={{ x: 50, y: 50 }} frame={frame - 1788} duration={57} 
-                enterAnim={(f) => ({ transform: `translate(-50%, -50%) scale(${s(f)})` })}
-              />
-              {/* 2ndVis: single white dot expanding to full screen */}
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: `${interpolate(frame - 1788, [30, 57], [0, 3000])}px`,
-                height: `${interpolate(frame - 1788, [30, 57], [0, 3000])}px`,
-                background: 'white',
-                borderRadius: '50%',
-                transform: 'translate(-50%, -50%)',
-              }} />
-          </div>
-      </Sequence>
-
-    </div>
+        </Series.Sequence>
+      </Series>
+    </AbsoluteFill>
   );
 };
