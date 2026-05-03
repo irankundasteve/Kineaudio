@@ -1,235 +1,79 @@
 import { loadFont as loadMontserrat } from "@remotion/google-fonts/Montserrat";
+import { loadFont as loadInter } from "@remotion/google-fonts/Inter";
 import { 
   useCurrentFrame, 
   useVideoConfig, 
   interpolate, 
-  spring, 
   AbsoluteFill,
   Series,
-  Easing,
-  Sequence
+  Easing
 } from 'remotion';
-import React from 'react';
-import { LucideIcon, Globe, Server, Cloud, AppWindow, ShieldCheck } from 'lucide-react';
+import React, { useMemo } from 'react';
 import '../index.css';
 
 // Load fonts
 const { fontFamily: montserratBold } = loadMontserrat("normal", { weights: ["700"] });
+const { fontFamily: montserratExtraBold } = loadMontserrat("normal", { weights: ["800"] });
+const { fontFamily: montserratSemiBold } = loadMontserrat("normal", { weights: ["600"] });
+const { fontFamily: interRegular } = loadInter("normal", { weights: ["400"] });
+const { fontFamily: interBold } = loadInter("normal", { weights: ["700"] });
+const { fontFamily: interExtraBold } = loadInter("normal", { weights: ["800"] });
+const { fontFamily: interSemiBold } = loadInter("normal", { weights: ["600"] });
 
-// Colors from blueprint
-const COLORS = {
-  deepSpace: "#0a0e27",
-  electricCyan: "#00f5ff",
-  starkWhite: "#ffffff",
-  accentAmber: "#ffaa00",
-  corporateBlue: "#4285f4",
-  amazonOrange: "#ff9900",
-  metaBlue: "#0668E1",
-};
+// Components
+const FilmGrain: React.FC<{ opacity: number }> = ({ opacity }) => (
+  <AbsoluteFill style={{ pointerEvents: 'none', opacity }}>
+    <svg width="100%" height="100%">
+      <filter id="grain">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+        <feColorMatrix type="saturate" values="0" />
+      </filter>
+      <rect width="100%" height="100%" filter="url(#grain)" fill="white" />
+    </svg>
+  </AbsoluteFill>
+);
 
-// Animation helper components
-const AnimatedText: React.FC<{
-  text: string;
-  size?: number;
-  className?: string;
-  style?: React.CSSProperties;
-  color?: string;
-  enterType?: 'scale_pop' | 'typewriter' | 'fade_slide_up' | 'blur_in' | 'slide_up' | 'split_reveal' | 'char_stagger' | 'wipe_left' | 'fade_in' | 'scale_breathe';
-  exitType?: 'fade_blur' | 'scale_fade' | 'slide_down' | 'wipe_reverse' | 'none' | 'blur_out';
-  delay?: number;
-  duration?: number;
-  textAlign?: 'left' | 'center' | 'right';
-  emphasis?: { word: string; color: string }[];
-}> = ({ 
-  text, 
-  size = 64, 
-  className = "", 
-  style = {}, 
-  color = COLORS.starkWhite,
-  enterType = 'fade_in', 
-  exitType = 'none',
-  delay = 0, 
-  duration = 30, // frames
-  textAlign = 'center',
-  emphasis = []
-}) => {
+const FractalNoiseBG: React.FC<{ evolution: number; opacity: number; color?: string }> = ({ evolution, opacity, color = "white" }) => (
+  <AbsoluteFill style={{ opacity, mixBlendMode: 'screen' }}>
+    <svg width="100%" height="100%">
+      <filter id="fractal">
+        <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="5" seed={Math.floor(evolution)} />
+        <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" />
+      </filter>
+      <rect width="100%" height="100%" filter="url(#fractal)" fill={color} />
+    </svg>
+  </AbsoluteFill>
+);
+
+const DustParticles: React.FC<{ count: number; color: string; speed?: number }> = ({ count, color, speed = 0.5 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const particles = useMemo(() => {
+    return Array.from({ length: count }).map((_, i) => ({
+      x: Math.random() * 1920,
+      y: Math.random() * 1080,
+      size: 2 + Math.random() * 6,
+      opacity: 0.1 + Math.random() * 0.4,
+      seed: Math.random(),
+    }));
+  }, [count]);
 
-  const t = frame;
-  const exitDuration = 15;
-  const sequenceDuration = useVideoConfig().durationInFrames;
-  
-  // Entrance
-  let opacity = 1;
-  let transform = '';
-  let filter = '';
-  let clipPath = '';
-  let displayText = text;
-
-  // Entrance animations
-  if (t < delay + 30) {
-    const progress = Math.max(0, Math.min(1, (t - delay) / 20));
-    
-    if (enterType === 'scale_pop') {
-      const s = interpolate(progress, [0, 1], [0.8, 1], { easing: Easing.bezier(0.3, 0.9, 0.6, 1.0) });
-      transform = `scale(${s})`;
-      opacity = progress;
-      filter = `blur(${interpolate(progress, [0, 1], [10, 0])}px)`;
-    } else if (enterType === 'typewriter') {
-      const chars = Math.floor(interpolate(progress, [0, 1], [0, text.length]));
-      displayText = text.substring(0, chars);
-    } else if (enterType === 'fade_slide_up') {
-      opacity = progress;
-      const y = interpolate(progress, [0, 1], [20, 0], { easing: Easing.bezier(0.25, 0.46, 0.43, 0.95) });
-      transform = `translateY(${y}px)`;
-    } else if (enterType === 'blur_in') {
-      opacity = progress;
-      filter = `blur(${interpolate(progress, [0, 1], [25, 0])}px)`;
-    } else if (enterType === 'slide_up') {
-      opacity = progress;
-      const y = interpolate(progress, [0, 1], [40, 0], { easing: Easing.bezier(0.3, 0.9, 0.6, 1.0) });
-      transform = `translateY(${y}px)`;
-    } else if (enterType === 'fade_in') {
-      opacity = progress;
-    } else if (enterType === 'wipe_left') {
-       clipPath = `inset(0 ${interpolate(progress, [0, 1], [100, 0])}% 0 0)`;
-    }
-  }
-
-  // Exit animations
-  if (t > sequenceDuration - exitDuration) {
-    const exitProgress = (t - (sequenceDuration - exitDuration)) / exitDuration;
-    if (exitType === 'fade_blur') {
-      opacity = interpolate(exitProgress, [0, 1], [1, 0]);
-      filter = `blur(${interpolate(exitProgress, [0, 1], [0, 15])}px)`;
-    } else if (exitType === 'scale_fade') {
-      opacity = interpolate(exitProgress, [0, 1], [1, 0]);
-      const s = interpolate(exitProgress, [0, 1], [1, 0.9]);
-      transform = `scale(${s})`;
-    } else if (exitType === 'slide_down') {
-      opacity = interpolate(exitProgress, [0, 1], [1, 0]);
-      const y = interpolate(exitProgress, [0, 1], [0, 30]);
-      transform = `translateY(${y}px)`;
-    } else if (exitType === 'blur_out') {
-      filter = `blur(${interpolate(exitProgress, [0, 1], [0, 20])}px)`;
-      opacity = interpolate(exitProgress, [0, 1], [1, 0]);
-    }
-  }
-
-  const renderText = () => {
-    if (enterType === 'char_stagger') {
-      return text.split('').map((char, i) => {
-        const charDelay = i * 2;
-        const charProgress = Math.max(0, Math.min(1, (t - delay - charDelay) / 10));
-        return (
-          <span key={`char-${i}`} style={{ 
-            opacity: charProgress, 
-            display: 'inline-block',
-            transform: `scale(${interpolate(charProgress, [0, 1], [0.8, 1])})`,
-            color: emphasis.find(e => e.word.toLowerCase() === char.toLowerCase())?.color || color
-          }}>
-            {char === ' ' ? '\u00A0' : char}
-          </span>
-        );
-      });
-    }
-
-    let result: React.ReactNode[] = [displayText];
-    emphasis.forEach(({ word, color: emphColor }) => {
-      const safeWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(`(${safeWord})`, 'gi');
-      
-      const newResult: React.ReactNode[] = [];
-      result.forEach(item => {
-        if (typeof item === 'string') {
-          const parts = item.split(regex);
-          parts.forEach(part => {
-            if (part.toLowerCase() === word.toLowerCase()) {
-              newResult.push(<span style={{ color: emphColor }}>{part}</span>);
-            } else if (part !== "") {
-              newResult.push(part);
-            }
-          });
-        } else {
-          newResult.push(item);
-        }
-      });
-      result = newResult;
-    });
-
-    return result.map((item, idx) => {
-      if (typeof item === 'string') {
-        return <span key={idx}>{item}</span>;
-      }
-      if (React.isValidElement(item)) {
-        return React.cloneElement(item as React.ReactElement, { key: idx });
-      }
-      return item;
-    });
-  };
-
-  return (
-    <div 
-      className={className}
-      style={{ 
-        fontFamily: montserratBold, 
-        fontSize: size, 
-        opacity,
-        transform,
-        filter,
-        clipPath,
-        textAlign,
-        color,
-        lineHeight: 1.2,
-        ...style
-      }}
-    >
-      {renderText()}
-    </div>
-  );
-};
-
-const FractalNoiseBG: React.FC<{ evolution: number; opacity: number }> = ({ evolution, opacity }) => {
-  return (
-    <AbsoluteFill style={{ 
-      opacity, 
-      filter: 'contrast(150%) brightness(50%)',
-      mixBlendMode: 'screen'
-    }}>
-      <svg width="100%" height="100%">
-        <filter id="fractal">
-          <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="5" seed={Math.floor(evolution / 30)} />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#fractal)" fill="white" />
-      </svg>
-    </AbsoluteFill>
-  );
-};
-
-const Particles: React.FC<{ count: number; color: string; driftSpeed?: number }> = ({ count, color, driftSpeed = 0.5 }) => {
-  const frame = useCurrentFrame();
   return (
     <AbsoluteFill>
-      {[...Array(count)].map((_, i) => {
-        const x = (i * 23.5) % 1920;
-        const startY = (i * 47.1) % 1080;
-        const y = (startY - frame * driftSpeed + 1080) % 1080;
-        const size = 2 + (i % 7);
+      {particles.map((p, i) => {
+        const currentY = (p.y - frame * speed * (p.size / 4) + 1080) % 1080;
         return (
           <div 
             key={i}
             style={{
               position: 'absolute',
-              left: x,
-              top: y,
-              width: size,
-              height: size,
+              left: p.x,
+              top: currentY,
+              width: p.size,
+              height: p.size,
               backgroundColor: color,
               borderRadius: '50%',
-              opacity: 0.3 * (size / 8),
-              boxShadow: `0 0 10px ${color}`
+              opacity: p.opacity,
+              boxShadow: `0 0 10px ${color}66`,
             }}
           />
         );
@@ -238,19 +82,198 @@ const Particles: React.FC<{ count: number; color: string; driftSpeed?: number }>
   );
 };
 
-const GridSystem: React.FC<{ opacity: number; pulseProgress: number }> = ({ opacity, pulseProgress }) => {
+const Scanlines: React.FC<{ opacity: number; speed?: number }> = ({ opacity, speed = 20 }) => {
+  const frame = useCurrentFrame();
+  const yOffset = (frame * speed) % 80;
   return (
-    <AbsoluteFill style={{ opacity }}>
+    <AbsoluteFill style={{ opacity, pointerEvents: 'none' }}>
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: `radial-gradient(circle at center, transparent 0%, transparent 100%), 
-          linear-gradient(to right, ${COLORS.electricCyan}33 1px, transparent 1px), 
-          linear-gradient(to bottom, ${COLORS.electricCyan}33 1px, transparent 1px)`,
-        backgroundSize: '100% 100%, 80px 80px, 80px 80px',
-        transform: `scale(${1 + pulseProgress * 0.05})`,
+        backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+        backgroundSize: '100% 4px',
+        transform: `translateY(${yOffset}px)`,
       }} />
     </AbsoluteFill>
+  );
+};
+
+// Animated Text Component
+const KineticText: React.FC<{
+  text: string;
+  fontFamily: string;
+  size: number;
+  color?: string;
+  textAlign?: 'left' | 'center' | 'right';
+  x?: number;
+  y?: number;
+  enterType?: 'slide-up' | 'fade-blur' | 'slide-right' | 'scale-pop' | 'typewriter' | 'none';
+  exitType?: 'slide-up' | 'scale-fade' | 'slide-right' | 'fade' | 'slide-down' | 'none';
+  staggerType?: 'word' | 'clause' | 'none';
+  staggerDelay?: number;
+  emphasis?: string[];
+  emphasisColor?: string;
+}> = ({
+  text,
+  fontFamily,
+  size,
+  color = "white",
+  textAlign = 'center',
+  x = 960,
+  y = 540,
+  enterType = 'slide-up',
+  exitType = 'fade',
+  staggerType = 'none',
+  staggerDelay = 70,
+  emphasis = [],
+  emphasisColor = "#00F3FF"
+}) => {
+  const frame = useCurrentFrame();
+  const config = useVideoConfig();
+  const fps = config.fps;
+  const seqDuration = config.durationInFrames;
+
+  const t = frame;
+  const enterDuration = 24; // ~800ms
+  const exitDuration = 18; // ~600ms
+
+  const renderContent = () => {
+    if (staggerType === 'word') {
+      const words = text.split(' ');
+      return words.map((word, i) => {
+        const wordDelay = (i * staggerDelay) / (1000 / fps);
+        const wordProgress = Math.max(0, Math.min(1, (t - wordDelay) / enterDuration));
+        
+        let wordOpacity = interpolate(wordProgress, [0, 1], [0, 1]);
+        let wordY = interpolate(wordProgress, [0, 1], [40, 0], { easing: Easing.bezier(0.35, 0, 0.35, 1) });
+        let wordScale = interpolate(wordProgress, [0, 1], [0.92, 1]);
+        
+        if (t > seqDuration - exitDuration) {
+          const exitT = t - (seqDuration - exitDuration);
+          const revIndex = words.length - 1 - i;
+          const exitWordDelay = (revIndex * staggerDelay) / (1000 / fps);
+          const exitProgress = Math.max(0, Math.min(1, (exitT - exitWordDelay) / exitDuration));
+          wordOpacity *= interpolate(exitProgress, [0, 1], [1, 0]);
+          wordY -= interpolate(exitProgress, [0, 1], [0, 30]);
+        }
+
+        const isEmphasized = emphasis.some(e => word.toLowerCase().includes(e.toLowerCase()));
+
+        return (
+          <span key={i} style={{ 
+            display: 'inline-block', 
+            opacity: wordOpacity, 
+            transform: `translateY(${wordY}px) scale(${wordScale})`,
+            marginRight: '0.25em',
+            color: isEmphasized ? emphasisColor : color,
+            fontWeight: isEmphasized ? 'bold' : 'inherit'
+          }}>
+            {word}
+          </span>
+        );
+      });
+    }
+
+    if (staggerType === 'clause') {
+        const parts = text.split(/([,—]|biology|psychology|culture|health|genetics|capability|Confidence|behavior|emotional intelligence)/);
+        return parts.map((part, i) => {
+            if (!part) return null;
+            const partDelay = (i * 140) / (1000 / fps);
+            const progress = Math.max(0, Math.min(1, (t - partDelay) / enterDuration));
+            let pOpacity = interpolate(progress, [0, 1], [0, 1]);
+            let pScale = interpolate(progress, [0, 1], [0.9, 1]);
+
+            if (t > seqDuration - exitDuration) {
+                const exitT = t - (seqDuration - exitDuration);
+                const exitProgress = Math.max(0, Math.min(1, exitT / exitDuration));
+                pOpacity *= interpolate(exitProgress, [0, 1], [1, 0]);
+                pScale *= interpolate(exitProgress, [0, 1], [1, 0.96]);
+            }
+
+            return (
+                <span key={i} style={{ 
+                    display: 'inline-block', 
+                    opacity: pOpacity, 
+                    transform: `scale(${pScale})`,
+                }}>
+                    {part}
+                </span>
+            );
+        });
+    }
+
+    const progress = Math.max(0, Math.min(1, t / enterDuration));
+    let opacity = interpolate(progress, [0, 1], [0, 1]);
+    let transform = '';
+    let filter = '';
+
+    if (enterType === 'slide-up') {
+      const ty = interpolate(progress, [0, 1], [40, 0], { easing: Easing.bezier(0.35, 0, 0.35, 1) });
+      const ts = interpolate(progress, [0, 1], [0.92, 1]);
+      transform = `translateY(${ty}px) scale(${ts})`;
+    } else if (enterType === 'fade-blur') {
+      filter = `blur(${interpolate(progress, [0, 1], [12, 0])}px)`;
+      const ts = interpolate(progress, [0, 1], [0.96, 1]);
+      transform = `scale(${ts})`;
+    } else if (enterType === 'slide-right') {
+       const tx = interpolate(progress, [0, 1], [45, 0]);
+       transform = `translateX(${tx}px)`;
+    } else if (enterType === 'scale-pop') {
+       const ts = interpolate(progress, [0, 1], [0.86, 1]);
+       transform = `scale(${ts})`;
+    }
+
+    if (t > seqDuration - exitDuration) {
+       const et = t - (seqDuration - exitDuration);
+       const ep = Math.max(0, Math.min(1, et / exitDuration));
+       
+       if (exitType === 'slide-up') {
+          opacity *= interpolate(ep, [0, 1], [1, 0]);
+          transform += ` translateY(-30px)`;
+       } else if (exitType === 'scale-fade') {
+          opacity *= interpolate(ep, [0, 1], [1, 0]);
+          transform += ` scale(0.94)`;
+       } else if (exitType === 'slide-down') {
+          opacity *= interpolate(ep, [0, 1], [1, 0]);
+          transform += ` translateY(35px)`;
+       } else if (exitType === 'slide-right') {
+          opacity *= interpolate(ep, [0, 1], [1, 0]);
+          transform += ` translateX(35px)`;
+       } else {
+          opacity *= interpolate(ep, [0, 1], [1, 0]);
+       }
+    }
+
+    const pulse = Math.sin((frame / 60) * Math.PI * 2);
+    const idleScale = interpolate(pulse, [-1, 1], [1, 1.015]);
+    transform += ` scale(${idleScale})`;
+
+    return (
+      <div style={{ 
+        fontFamily, 
+        fontSize: size, 
+        color, 
+        textAlign, 
+        opacity, 
+        transform, 
+        filter,
+        textShadow: enterType === 'slide-up' ? `0 0 ${interpolate(progress, [0, 1], [0, 10])}px ${color}66` : 'none',
+      }}>
+        {text}
+      </div>
+    );
+  };
+
+  return (
+    <div style={{
+      position: 'absolute',
+      left: x,
+      top: y,
+      transform: textAlign === 'center' ? 'translate(-50%, -50%)' : 'translateY(-50%)',
+      width: textAlign === 'center' ? '80%' : 'auto',
+    }}>
+      {renderContent()}
+    </div>
   );
 };
 
@@ -258,569 +281,558 @@ export const MainVideo: React.FC = () => {
   const frame = useCurrentFrame();
 
   return (
-    <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace }}>
+    <AbsoluteFill style={{ backgroundColor: '#0A0A0F' }}>
       <Series>
-        {/* [00:00–00:04] Who Owns the Internet? */}
+        {/* 0:00–0:04 */}
         <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ background: `radial-gradient(circle, #1a1f3a, #0a0e27)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <FractalNoiseBG evolution={frame} opacity={0.15} />
-            <Particles count={40} color={COLORS.electricCyan} driftSpeed={0.8} />
-            <AnimatedText 
-              text="Who Owns the Internet?"
-              size={96}
-              enterType="scale_pop"
-              exitType="fade_blur"
-              style={{ textShadow: `0 0 20px ${COLORS.electricCyan}66` }}
+          <AbsoluteFill style={{ background: `radial-gradient(circle, #1A1D2A, transparent)` }}>
+             <div style={{ 
+                position: 'absolute', 
+                inset: 0, 
+                opacity: 0.35, 
+                backgroundColor: '#1A1D2A', 
+                transform: `scale(${interpolate(frame % 120, [0, 120], [0.9, 1])})`
+             }} />
+             <DustParticles count={50} color="white" />
+             <FilmGrain opacity={0.05} />
+             <KineticText 
+              text="Why Do Women Prefer Tall Men?"
+              fontFamily={montserratExtraBold}
+              size={92}
+              enterType="slide-up"
+              exitType="slide-up"
+              staggerType="word"
+              staggerDelay={70}
             />
           </AbsoluteFill>
         </Series.Sequence>
 
-        {/* [00:04–00:07] Who owns the internet? */}
+        {/* 0:04–0:07 */}
         <Series.Sequence durationInFrames={90}>
-          <AbsoluteFill style={{ background: `radial-gradient(circle, #1a1f3a, #0a0e27)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Particles count={30} color={frame < 180 ? COLORS.accentAmber : COLORS.electricCyan} />
-            <GridSystem opacity={0.2} pulseProgress={interpolate(frame % 60, [0, 30, 60], [0, 1, 0])} />
-            <AnimatedText 
-              text="Who owns the internet?"
+          <AbsoluteFill style={{ backgroundColor: '#151922' }}>
+            <div style={{ position: 'absolute', inset: 0, opacity: 0.08 }}>
+              {[...Array(10)].map((_, i) => (
+                <div key={i} style={{
+                  position: 'absolute',
+                  left: i * 200,
+                  width: 2,
+                  height: '100%',
+                  backgroundColor: '#00F3FF',
+                  transform: `translateY(${-(frame % 90) * 0.8}px)`
+                }} />
+              ))}
+            </div>
+            <KineticText 
+              text="Why do many women prefer tall men?"
+              fontFamily={interBold}
+              size={78}
+              enterType="fade-blur"
+              exitType="scale-fade"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 0:07–0:11 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#151922' }}>
+            <FractalNoiseBG evolution={frame / 10} opacity={0.18} color="#151922" />
+            <KineticText 
+              text="It’s not one reason."
+              fontFamily={interBold}
               size={72}
-              enterType="typewriter"
-              exitType="scale_fade"
-              style={{ transform: `translateX(${Math.sin(frame / 20) * 3}px)` }}
+              enterType="slide-right"
+              exitType="slide-right"
             />
           </AbsoluteFill>
         </Series.Sequence>
 
-        {/* [00:07–00:10] It sounds like there should be a name. */}
+        {/* 0:11–0:14 */}
         <Series.Sequence durationInFrames={90}>
-          <AbsoluteFill style={{ backgroundColor: "#070a1a", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <AnimatedText 
-              text="It sounds like there should\nbe a name."
-              size={64}
-              enterType="blur_in"
-              exitType="fade_blur"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:10–00:12] A company. */}
-        <Series.Sequence durationInFrames={60}>
-          <AbsoluteFill style={{ backgroundColor: "#070a1a", display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: '100px' }}>
-            <AnimatedText 
-              text="A company."
-              size={68}
-              enterType="slide_up"
-              exitType="slide_down"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:12–00:14] A country. */}
-        <Series.Sequence durationInFrames={60}>
-          <AbsoluteFill style={{ backgroundColor: "#070a1a", display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: '100px' }}>
-            <AnimatedText 
-              text="A country."
-              size={68}
-              enterType="slide_up"
-              exitType="slide_down"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:14–00:18] But the truth is… no one owns it. */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ background: `radial-gradient(circle, #1a1f3a, #0a0e27)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="But the truth is…\nno one owns it."
-              size={64}
-              enterType="fade_slide_up"
-              exitType="fade_blur"
-              emphasis={[{ word: "no one", color: COLORS.accentAmber }]}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:18–00:22] The internet isn't a single thing. */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <AnimatedText 
-              text="The internet isn't\na single thing."
-              size={64}
-              enterType="char_stagger"
-              exitType="scale_fade"
-              style={{ transform: `translate(${Math.random() - 0.5}px, ${Math.random() - 0.5}px)` }}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:22–00:26] It's a massive network— */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '200px' }}>
-            <AnimatedText 
-              text="It's a massive network—"
-              size={64}
-              enterType="wipe_left"
-              exitType="none"
-              style={{ color: COLORS.starkWhite }}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:26–00:30] a web of millions of computers, servers, and cables */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="a web of millions of computers,\nservers, and cables"
-              size={60}
-              enterType="typewriter"
-              exitType="fade_blur"
-              emphasis={[
-                { word: "computers", color: COLORS.accentAmber },
-                { word: "servers", color: COLORS.accentAmber },
-                { word: "cables", color: COLORS.accentAmber }
-              ]}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:30–00:34] spread across the entire planet. */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: '200px' }}>
-             <div style={{ transform: `scale(${interpolate(frame % 120, [0, 120], [1, 1.1])})` }}>
-               <Globe className="text-white opacity-10" size={800} style={{ position: 'absolute', left: '10%' }} />
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
+             <div style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%, -50%) rotate(${frame * 0.1}deg)` }}>
+                <div style={{ width: 400, height: 400, borderRadius: '50%', border: '2px solid rgba(0, 243, 255, 0.04)', position: 'absolute', left: -200, top: -200 }} />
+                <div style={{ width: 300, height: 300, border: '2px solid rgba(255, 215, 0, 0.04)', position: 'absolute', left: -150, top: -150, transform: `rotate(45deg)` }} />
              </div>
-             <AnimatedText 
-              text="spread across the entire planet."
-              size={60}
-              enterType="fade_in"
-              exitType="scale_fade"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:34–00:37] No central owner. */}
-        <Series.Sequence durationInFrames={90}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="No central owner."
-              size={64}
-              enterType="scale_pop"
-              exitType="fade_blur"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:37–00:40] No master switch. */}
-        <Series.Sequence durationInFrames={90}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <div style={{ position: 'absolute', fontSize: 1000, color: COLORS.starkWhite, opacity: 0.05 }}>X</div>
-             <AnimatedText 
-              text="No master switch."
-              size={64}
-              enterType="fade_in"
-              exitType="none"
-              style={{ transform: `translateX(${interpolate(frame % 90, [0, 90], [30, -30])}px)` }}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:40–00:44] Instead, it's held together by cooperation. */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="Instead, it's held together\nby cooperation."
-              size={60}
-              enterType="fade_in"
-              exitType="fade_blur"
-              emphasis={[{ word: "cooperation", color: COLORS.accentAmber }]}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:44–00:49] Organizations like ICANN help manage domain names— */}
-        <Series.Sequence durationInFrames={150}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '200px' }}>
-            <AnimatedText 
-              text="Organizations like ICANN\nhelp manage domain names—"
-              size={60}
-              enterType="fade_in"
-              exitType="none"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:49–00:53] the addresses you type every day. */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <AnimatedText 
-              text="the addresses you type every day."
-              size={60}
-              enterType="typewriter"
-              exitType="fade_blur"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:53–00:58] Groups like the IETF create the rules— */}
-        <Series.Sequence durationInFrames={150}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '200px' }}>
-             <AnimatedText 
-              text="Groups like the IETF\ncreate the rules—"
-              size={60}
-              enterType="fade_in"
-              exitType="none"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [00:58–01:03] the protocols that allow devices to communicate. */}
-        <Series.Sequence durationInFrames={150}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="the protocols that allow\ndevices to communicate."
-              size={60}
-              enterType="fade_in"
-              exitType="fade_blur"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [01:03–01:06] And companies? */}
-        <Series.Sequence durationInFrames={90}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="And companies?"
+             <KineticText 
+              text="It’s a mix—biology, psychology, and culture."
+              fontFamily={montserratBold}
               size={68}
-              enterType="scale_pop"
-              exitType="scale_fade"
+              staggerType="clause"
+              enterType="scale-pop"
+              exitType="scale-fade"
             />
           </AbsoluteFill>
         </Series.Sequence>
 
-        {/* [01:06–01:09] They own pieces of it. */}
+        {/* 0:14–0:18 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#0D0D12' }}>
+             <div style={{ 
+                position: 'absolute', 
+                inset: 0, 
+                background: 'linear-gradient(135deg, transparent, rgba(255,255,255,0.18), transparent)',
+                transform: `translateX(${interpolate(frame % 120, [0, 120], [-1920, 1920])}px)`
+             }} />
+             <KineticText 
+              text="Start with perception."
+              fontFamily={interExtraBold}
+              size={84}
+              enterType="slide-up"
+              exitType="slide-up"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 0:18–0:21 */}
         <Series.Sequence durationInFrames={90}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="They own pieces of it."
+          <AbsoluteFill style={{ backgroundColor: '#08080C' }}>
+            <Scanlines opacity={0.04} />
+            <KineticText 
+              text="Height is often associated with strength, protection, and presence."
+              fontFamily={montserratBold}
               size={64}
-              enterType="fade_in"
-              exitType="none"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [01:09–01:12] Google runs servers. */}
-        <Series.Sequence durationInFrames={90}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', paddingLeft: '200px' }}>
-            <div style={{ position: 'absolute', left: '60%', width: 200, height: 400, opacity: 0.1 }}>
-               <Server size={400} color={COLORS.starkWhite} />
-            </div>
-            <AnimatedText 
-              text="Google runs servers."
-              size={60}
               textAlign="left"
-              enterType="fade_in"
-              exitType="none"
-              emphasis={[{ word: "Google", color: COLORS.corporateBlue }]}
+              x={200}
+              staggerType="word"
+              staggerDelay={60}
+              enterType="slide-up"
+              exitType="fade"
             />
           </AbsoluteFill>
         </Series.Sequence>
 
-        {/* [01:12–01:15] Amazon powers cloud infrastructure. */}
-        <Series.Sequence durationInFrames={90}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'absolute', top: '10%', opacity: 0.1 }}>
-               <Cloud size={600} color={COLORS.starkWhite} />
-            </div>
-            <AnimatedText 
-              text="Amazon powers cloud\ninfrastructure."
-              size={60}
-              enterType="fade_in"
-              exitType="none"
-              emphasis={[{ word: "Amazon", color: COLORS.amazonOrange }]}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [01:15–01:18] Meta builds platforms people use daily. */}
-        <Series.Sequence durationInFrames={90}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', paddingRight: '200px', justifyContent: 'flex-end' }}>
-            <div style={{ position: 'absolute', right: '60%', opacity: 0.1 }}>
-               <AppWindow size={400} color={COLORS.starkWhite} />
-            </div>
-            <AnimatedText 
-              text="Meta builds platforms\npeople use daily."
-              size={60}
-              textAlign="right"
-              enterType="fade_in"
-              exitType="none"
-              emphasis={[{ word: "Meta", color: COLORS.metaBlue }]}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [01:18–01:22] Telecom providers lay cables. */}
+        {/* 0:21–0:25 */}
         <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: '200px' }}>
+          <AbsoluteFill style={{ background: 'linear-gradient(#151922, #0F172A)' }}>
+             <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle, transparent, black)', opacity: interpolate(frame % 120, [0, 120], [0, 0.5]) }} />
+             <KineticText 
+              text="A taller figure stands out—literally."
+              fontFamily={interBold}
+              size={76}
+              enterType="scale-pop"
+              exitType="scale-fade"
+              emphasis={["literally."]}
+              emphasisColor="#FFD700"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 0:25–0:28 */}
+        <Series.Sequence durationInFrames={90}>
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
             <div style={{ 
-              position: 'absolute', 
-              bottom: 180, 
-              left: '20%', 
-              right: '20%', 
-              height: 4, 
-              backgroundColor: COLORS.starkWhite, 
-              opacity: 0.2,
-              transform: `scaleX(${interpolate(frame % 120, [0, 120], [0, 1])})`
+               position: 'absolute', 
+               left: '50%', 
+               top: '50%', 
+               width: 1000, 
+               height: 1000, 
+               border: '1px solid rgba(255,255,255,0.07)', 
+               transform: `translate(-50%, -50%) scale(${interpolate(frame % 90, [0, 90], [0.6, 1.4])})`,
+               opacity: interpolate(frame % 90, [60, 90], [1, 0])
             }} />
-            <AnimatedText 
-              text="Telecom providers lay cables."
-              size={60}
-              enterType="fade_in"
-              exitType="none"
+            <KineticText 
+              text="In social settings, height signals visibility and dominance."
+              fontFamily={interBold}
+              size={68}
+              textAlign="left"
+              x={220}
+              enterType="slide-down"
+              exitType="slide-down"
             />
           </AbsoluteFill>
         </Series.Sequence>
 
-        {/* [01:22–01:26] Governments regulate access within borders. */}
+        {/* 0:28–0:32 */}
         <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'absolute', inset: 0, opacity: 0.1 }}>
-               <ShieldCheck size={1080} color={COLORS.accentAmber} />
-            </div>
-            <AnimatedText 
-              text="Governments regulate access\nwithin borders."
-              size={60}
-              enterType="fade_in"
-              exitType="none"
+          <AbsoluteFill style={{ backgroundColor: '#0D0D12' }}>
+            <div style={{ 
+               position: 'absolute', 
+               width: 300, 
+               height: 300, 
+               borderRadius: '50%', 
+               background: 'cyan', 
+               opacity: 0.12, 
+               filter: 'blur(90px)',
+               transform: `translateX(${interpolate(frame % 120, [0, 120], [-500, 2420])}px)`
+            }} />
+            <KineticText 
+              text="Not always accurate… but often assumed."
+              fontFamily={montserratSemiBold}
+              size={62}
+              enterType="scale-pop"
+              exitType="slide-up"
+              emphasis={["accurate…"]}
             />
           </AbsoluteFill>
         </Series.Sequence>
 
-        {/* [01:26–01:31] But none of them… own the internet itself. */}
-        <Series.Sequence durationInFrames={150}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="But none of them…\nown the internet itself."
-              size={64}
-              enterType="fade_in"
-              exitType="fade_blur"
-              emphasis={[{ word: "internet itself", color: COLORS.accentAmber }]}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [01:31–01:35] It's more like a shared system— */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '200px' }}>
-            <AnimatedText 
-              text="It's more like a shared system—"
-              size={64}
-              enterType="fade_in"
-              exitType="none"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [01:35–01:40] decentralized, distributed, and constantly evolving. */}
-        <Series.Sequence durationInFrames={150}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="decentralized, distributed,\nand constantly evolving."
-              size={60}
-              enterType="fade_in"
-              exitType="fade_blur"
-              emphasis={[
-                { word: "decentralized", color: COLORS.accentAmber },
-                { word: "distributed", color: COLORS.accentAmber },
-                { word: "constantly evolving", color: COLORS.accentAmber }
-              ]}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [01:40–01:45] So if no one owns it… who controls it? */}
-        <Series.Sequence durationInFrames={150}>
-          <AbsoluteFill style={{ background: `linear-gradient(45deg, #1a0a27, #0a0e27)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="So if no one owns it…\nwho controls it?"
-              size={64}
-              enterType="fade_slide_up"
-              exitType="none"
-              style={{ transform: `rotate(${interpolate(frame % 150, [0, 150], [-1, 1])}deg)` }}
-              emphasis={[{ word: "who controls it?", color: COLORS.accentAmber }]}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [01:45–01:49] That's where things get complicated. */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'absolute', inset: 0, opacity: 0.05 }}>
-               {[...Array(20)].map((_, i) => (
-                 <div key={i} style={{
-                   position: 'absolute',
-                   left: Math.random() * 1920,
-                   top: Math.random() * 1080,
-                   width: 100 + Math.random() * 400,
-                   height: 100 + Math.random() * 400,
-                   border: `1px solid ${COLORS.starkWhite}`,
-                   transform: `rotate(${Math.random() * 360}deg)`
-                 }} />
-               ))}
-            </div>
-            <AnimatedText 
-              text="That's where things get\ncomplicated."
-              size={60}
-              enterType="fade_in"
-              exitType="fade_blur"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [01:49–01:53] Control is fragmented. */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="Control is fragmented."
-              size={64}
-              enterType="fade_in"
-              exitType="none"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [01:53–01:58] Influence depends on infrastructure, regulation, and technology. */}
-        <Series.Sequence durationInFrames={150}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="Influence depends on infrastructure,\nregulation, and technology."
-              size={58}
-              enterType="fade_in"
-              exitType="none"
-              emphasis={[
-                { word: "infrastructure", color: COLORS.accentAmber },
-                { word: "regulation", color: COLORS.accentAmber },
-                { word: "technology", color: COLORS.accentAmber }
-              ]}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [01:58–02:02] Some countries restrict access. */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: '200px' }}>
-            <AnimatedText 
-              text="Some countries restrict access."
-              size={60}
-              enterType="fade_in"
-              exitType="none"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [02:02–02:06] Some companies shape what you see. */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="Some companies shape\nwhat you see."
-              size={60}
-              enterType="fade_in"
-              exitType="none"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [02:06–02:11] But the core idea remains— */}
-        <Series.Sequence durationInFrames={150}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '200px' }}>
-            <AnimatedText 
-              text="But the core idea remains—"
-              size={64}
-              enterType="fade_in"
-              exitType="none"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [02:11–02:17] The internet was designed to survive without a single point of control. */}
-        <Series.Sequence durationInFrames={180}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="The internet was designed to survive\nwithout a single point of control."
-              size={60}
-              enterType="fade_in"
-              exitType="fade_blur"
-              emphasis={[
-                { word: "survive", color: COLORS.accentAmber },
-                { word: "without a single point", color: COLORS.accentAmber }
-              ]}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [02:17–02:20] No owner. */}
+        {/* 0:32–0:35 */}
         <Series.Sequence durationInFrames={90}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="No owner."
-              size={72}
-              enterType="scale_pop"
-              exitType="scale_fade"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [02:20–02:23] No single authority. */}
-        <Series.Sequence durationInFrames={90}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="No single authority."
-              size={72}
-              enterType="slide_up"
-              exitType="slide_down"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [02:23–02:27] Just a global network— */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '200px' }}>
-             <AnimatedText 
-              text="Just a global network—"
-              size={64}
-              enterType="fade_in"
-              exitType="none"
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [02:27–02:31] built, maintained, and used */}
-        <Series.Sequence durationInFrames={120}>
-          <AbsoluteFill style={{ backgroundColor: COLORS.deepSpace, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AnimatedText 
-              text="built, maintained, and used"
-              size={60}
-              enterType="fade_in"
-              exitType="none"
-              emphasis={[
-                { word: "built", color: COLORS.accentAmber },
-                { word: "maintained", color: COLORS.accentAmber },
-                { word: "used", color: COLORS.accentAmber }
-              ]}
-            />
-          </AbsoluteFill>
-        </Series.Sequence>
-
-        {/* [02:31–02:36] by everyone. */}
-        <Series.Sequence durationInFrames={150}>
-          <AbsoluteFill style={{ background: `linear-gradient(to bottom, #0a0e27, #ffffff)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <div style={{ position: 'absolute', inset: 0, opacity: interpolate(frame % 150, [120, 150], [0, 1]) }} />
-             <AnimatedText 
-              text="by everyone."
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
+             <div style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%, -50%) rotate(${frame * 0.2}deg)` }}>
+                <div style={{ width: 500, height: 100, border: '2px solid rgba(255, 215, 0, 0.18)', borderRadius: '50%' }} />
+             </div>
+             <KineticText 
+              text="Then biology plays a role."
+              fontFamily={interExtraBold}
               size={80}
-              enterType="scale_pop"
-              exitType="none"
-              style={{ textShadow: `0 0 15px ${COLORS.accentAmber}4D` }}
+              enterType="slide-up"
+              exitType="slide-up"
             />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 0:35–0:39 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#08080C' }}>
+            <FractalNoiseBG evolution={frame / 5} opacity={0.22} color="#08080C" />
+            <KineticText 
+              text="Across many species, physical traits get linked to survival."
+              fontFamily={montserratBold}
+              size={66}
+              textAlign="left"
+              x={200}
+              staggerType="clause"
+              enterType="slide-up"
+              exitType="fade"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 0:39–0:42 */}
+        <Series.Sequence durationInFrames={90}>
+          <AbsoluteFill style={{ background: 'linear-gradient(#0F172A, #151922)' }}>
+             <div style={{ 
+                position: 'absolute', 
+                left: '50%', 
+                top: '50%', 
+                width: 800, 
+                height: 800, 
+                borderRadius: '50%', 
+                background: 'radial-gradient(circle, gold, transparent)', 
+                opacity: 0.09 * interpolate(Math.sin((frame % 90) * 0.1), [-1, 1], [0.8, 1]),
+                transform: `translate(-50%, -50%) scale(${interpolate(Math.sin((frame % 90) * 0.1), [-1, 1], [0.78, 0.98])})`
+             }} />
+             <KineticText 
+              text="In humans, height can be subconsciously tied to health, genetics, and capability."
+              fontFamily={interBold}
+              size={64}
+              staggerType="word"
+              staggerDelay={70}
+              enterType="scale-pop"
+              exitType="scale-fade"
+              emphasis={["health,", "genetics,", "capability."]}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 0:42–0:46 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#0D0D12' }}>
+            <div style={{ position: 'absolute', left: 240, top: 0, height: '100%', width: 1, backgroundColor: 'cyan', opacity: 0.28 }} />
+            <KineticText 
+              text="It’s not a rule—"
+              fontFamily={interBold}
+              size={72}
+              textAlign="left"
+              x={240}
+              enterType="slide-right"
+              exitType="slide-right"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 0:46–0:49 */}
+        <Series.Sequence durationInFrames={90}>
+          <AbsoluteFill style={{ backgroundColor: '#0D0D12' }}>
+            <DustParticles count={30} color="white" />
+            <KineticText 
+              text="but it’s a pattern that shows up."
+              fontFamily={montserratBold}
+              size={68}
+              enterType="scale-pop"
+              exitType="scale-fade"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 0:49–0:53 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
+             <div style={{ 
+                position: 'absolute', 
+                left: '50%', 
+                top: '50%', 
+                width: 400, 
+                height: 400, 
+                border: '1px solid cyan', 
+                opacity: 0.04, 
+                transform: `translate(-50%, -50%) rotate(${frame * 0.1}deg)` 
+             }} />
+             <KineticText 
+              text="Now psychology."
+              fontFamily={interExtraBold}
+              size={86}
+              enterType="slide-up"
+              exitType="slide-up"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 0:53–0:56 */}
+        <Series.Sequence durationInFrames={90}>
+          <AbsoluteFill style={{ backgroundColor: '#151922' }}>
+             <div style={{ position: 'absolute', inset: 0, opacity: 0.09 }}>
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} style={{
+                    position: 'absolute',
+                    top: i * 200,
+                    width: '100%',
+                    height: 2,
+                    background: 'linear-gradient(to right, transparent, white, transparent)',
+                    transform: `translateX(${interpolate(frame % 90, [0, 90], [-1920, 1920])}px)`
+                  }} />
+                ))}
+             </div>
+             <KineticText 
+              text="People are influenced by conditioning."
+              fontFamily={montserratBold}
+              size={66}
+              textAlign="left"
+              x={200}
+              enterType="slide-up"
+              exitType="fade"
+              staggerType="word"
+              staggerDelay={70}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 0:56–1:00 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
+             <div style={{ position: 'absolute', inset: 100, border: '1px solid rgba(255,215,0,0.14)', transform: `scale(${interpolate(frame % 120, [0, 120], [0, 1])})` }} />
+             <KineticText 
+              text="Movies, media, and social norms repeat the same image:"
+              fontFamily={interBold}
+              size={68}
+              enterType="scale-pop"
+              exitType="scale-fade"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:00–1:04 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
+             <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle, transparent, black)', opacity: 0.1 }} />
+             <KineticText 
+              text="the tall, confident man."
+              fontFamily={interBold}
+              size={82}
+              enterType="slide-up"
+              exitType="slide-up"
+              emphasis={["confident", "man."]}
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:04–1:07 */}
+        <Series.Sequence durationInFrames={90}>
+          <AbsoluteFill style={{ backgroundColor: '#0D0D12' }}>
+             <FractalNoiseBG evolution={frame / 10} opacity={0.1} />
+             <KineticText 
+              text="Over time, that becomes familiar."
+              fontFamily={montserratBold}
+              size={64}
+              enterType="fade-blur"
+              exitType="scale-fade"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:07–1:11 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#151922' }}>
+             <DustParticles count={20} color="gold" speed={0.8} />
+             <KineticText 
+              text="And familiar often feels attractive."
+              fontFamily={interSemiBold}
+              size={68}
+              enterType="slide-down"
+              exitType="slide-down"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:11–1:14 */}
+        <Series.Sequence durationInFrames={90}>
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
+             <div style={{ 
+                position: 'absolute', 
+                left: '20%', 
+                width: '30%', 
+                height: '100%', 
+                background: 'linear-gradient(cyan, transparent)', 
+                opacity: 0.07 
+             }} />
+             <div style={{ 
+                position: 'absolute', 
+                right: '20%', 
+                width: '30%', 
+                height: '100%', 
+                background: 'linear-gradient(gold, transparent)', 
+                opacity: 0.07 
+             }} />
+             <KineticText 
+              text="There’s also contrast."
+              fontFamily={montserratExtraBold}
+              size={80}
+              enterType="scale-pop"
+              exitType="scale-fade"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:14–1:18 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
+             <div style={{ position: 'absolute', left: '50%', top: 0, height: '100%', width: 1, backgroundColor: 'white', opacity: 0.09 }} />
+             <KineticText 
+              text="Height difference can create a sense of balance in appearance—"
+              fontFamily={interBold}
+              size={66}
+              textAlign="left"
+              x={200}
+              enterType="slide-up"
+              exitType="fade"
+              staggerType="clause"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:18–1:22 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#0D0D12' }}>
+             <div style={{ 
+               position: 'absolute', 
+               inset: 0, 
+               background: 'linear-gradient(30deg, transparent, rgba(255,255,255,0.11), transparent)',
+               transform: `translateX(${interpolate(frame % 120, [0, 120], [-500, 500])}px)`
+             }} />
+             <KineticText 
+              text="something many people find visually appealing."
+              fontFamily={interBold}
+              size={68}
+              enterType="fade-blur"
+              exitType="scale-fade"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:22–1:25 */}
+        <Series.Sequence durationInFrames={90}>
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
+             <div style={{ position: 'absolute', left: '20%', right: '20%', top: 520, height: 2, backgroundColor: 'gold', opacity: 0.38 }} />
+             <KineticText 
+              text="But here’s the reality most ignore—"
+              fontFamily={montserratExtraBold}
+              size={84}
+              y={440}
+              enterType="slide-up"
+              exitType="slide-up"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:25–1:29 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
+             <div style={{ 
+                position: 'absolute', 
+                left: '50%', 
+                top: '50%', 
+                width: 800, 
+                height: 800, 
+                borderRadius: '50%', 
+                border: '2px solid cyan', 
+                opacity: 0.14,
+                transform: `translate(-50%, -50%) scale(${interpolate(frame % 120, [0, 120], [0.5, 1])})`
+             }} />
+             <KineticText 
+              text="Preference is not requirement."
+              fontFamily={interBold}
+              size={78}
+              enterType="scale-pop"
+              exitType="scale-fade"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:29–1:32 */}
+        <Series.Sequence durationInFrames={90}>
+          <AbsoluteFill style={{ backgroundColor: '#0D0D12' }}>
+            <KineticText 
+              text="Not every woman prefers tall men."
+              fontFamily={montserratBold}
+              size={68}
+              textAlign="left"
+              x={220}
+              enterType="slide-up"
+              exitType="fade"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:32–1:36 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#151922' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(-30deg, transparent, rgba(255,255,255,0.1))', transform: `translateX(${interpolate(frame % 120, [0, 120], [-1000, 1000])}px)` }} />
+            <KineticText 
+              text="Not every tall man is attractive."
+              fontFamily={interSemiBold}
+              size={66}
+              textAlign="right"
+              x={1700}
+              enterType="slide-right"
+              exitType="slide-right"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:36–1:39 */}
+        <Series.Sequence durationInFrames={90}>
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
+             <KineticText 
+              text="Confidence, behavior, emotional intelligence—"
+              fontFamily={interBold}
+              size={72}
+              staggerType="clause"
+              enterType="scale-pop"
+              exitType="scale-fade"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:39–1:42 */}
+        <Series.Sequence durationInFrames={90}>
+          <AbsoluteFill style={{ backgroundColor: '#0F172A' }}>
+            <KineticText 
+              text="these factors consistently rank higher in long-term attraction."
+              fontFamily={montserratBold}
+              size={64}
+              textAlign="left"
+              x={200}
+              enterType="slide-down"
+              exitType="slide-down"
+            />
+          </AbsoluteFill>
+        </Series.Sequence>
+
+        {/* 1:42–1:46 */}
+        <Series.Sequence durationInFrames={120}>
+          <AbsoluteFill style={{ backgroundColor: '#0A0A0F' }}>
+             <FilmGrain opacity={0.04} />
           </AbsoluteFill>
         </Series.Sequence>
       </Series>
